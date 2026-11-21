@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Environment & secrets
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+*.log
+*.tmp
+~$*
+
+# Hasil preprocessing dapat dibuat ulang
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/README.md
