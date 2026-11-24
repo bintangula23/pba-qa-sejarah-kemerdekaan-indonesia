@@ -42,8 +42,17 @@ def periksa_konteks_tokoh(nama_tokoh, id_kalimat, kalimat_blok):
 
     for sebelumnya in reversed(kalimat_blok[awal:indeks_target]):
         teks = sebelumnya["teks_asli"]
+        
+        if re.search(
+            r"\b(?:bertemu dengan|menemui)\b",
+            teks,
+            flags=re.IGNORECASE
+        ):
+            return None
 
-        if nama_tokoh.lower() in teks.lower():
+        status = validasi_tokoh(nama_tokoh, teks)
+
+        if status == "COCOK":
             return sebelumnya["id_kalimat"]
 
     return None
