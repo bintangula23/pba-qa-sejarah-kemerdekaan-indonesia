@@ -1,399 +1,195 @@
 # Answer Processing — QA Sejarah Indonesia
 
-## 1. Tujuan Modul
+## 1. Tujuan dan Posisi Modul
 
-Modul Answer Processing merupakan salah satu komponen dalam sistem *Question Answering* (QA) berbasis aturan (*rule-based*) untuk menjawab pertanyaan mengenai sejarah Indonesia.
-
-Modul ini bertugas mengolah kalimat kandidat yang diperoleh dari Passage Retrieval menggunakan BM25, kemudian mengekstraksi jawaban sesuai tipe jawaban yang dihasilkan oleh Question Processing.
-
-Modul Answer Processing dikembangkan tanpa menggunakan Large Language Model (LLM). Proses ekstraksi jawaban menggunakan Regular Expression (RegEx), pencocokan pola kalimat, serta validasi hubungan antara pertanyaan, tokoh, peristiwa, dan konteks kalimat.
-
-Secara umum, alur sistem adalah:
+Answer Processing merupakan komponen sistem *Question Answering* (QA) sejarah Indonesia berbasis aturan (*rule-based*) tanpa Large Language Model (LLM). Modul ini memproses kandidat kalimat dari Passage Retrieval (BM25) dan mengekstraksi jawaban sesuai `answer_type` yang diberikan Question Processing.
 
 ```text
-Pertanyaan Pengguna
-        ↓
-Question Processing
-        ↓
-Passage Retrieval (BM25)
-        ↓
-Answer Processing
-        ↓
-Jawaban dan ID Kalimat Sumber
+Pertanyaan → Question Processing → Passage Retrieval (BM25)
+           → Answer Processing → Jawaban + ID kalimat sumber
 ```
 
-## 2. File Utama
+Ekstraksi menggunakan Regular Expression (RegEx), pencocokan frasa peristiwa, serta validasi subjek dan konteks untuk pola tertentu. Sistem tidak membangkitkan jawaban bebas: jawaban diambil dari teks kandidat yang memenuhi aturan.
 
-Modul Answer Processing terdiri dari tiga file utama:
+## 2. File dan Fungsi yang Digunakan
 
-### 2.1 `answer_processing.py`
+| File | Fungsi |
+|---|---|
+| `answer_processing.py` | Implementasi utama ekstraksi `DATE`, `PER`, `LOC`, `NUM`, dan `MISC`. |
+| `validasi_tokoh.py` | Validasi tokoh pada kalimat kelahiran, termasuk konteks kalimat sebelumnya dalam blok yang sama dan variasi `Di mana`/`Dimana`. |
+| `context_expansion.py` | Utilitas `perluas_konteks()` untuk mengambil kalimat satu blok. **Tidak dipanggil otomatis** oleh `ambil_jawaban()` pada alur evaluasi resmi. |
 
-Berisi fungsi utama untuk mengekstraksi jawaban dari kandidat kalimat berdasarkan tipe jawaban.
-
-Tipe jawaban yang sudah diimplementasikan adalah:
-
-- `DATE`: tanggal peristiwa.
-- `PER`: nama orang atau tokoh.
-- `LOC`: lokasi, khususnya lokasi kelahiran.
-- `NUM`: jumlah atau angka berdasarkan satuan tertentu.
-
-### 2.2 `validasi_tokoh.py`
-
-Berisi fungsi pendukung untuk memeriksa kecocokan identitas tokoh antara pertanyaan dan kalimat sumber.
-
-Modul ini juga menyediakan pemeriksaan konteks antarkalimat untuk membantu menangani pertanyaan kelahiran ketika kalimat sumber menggunakan kata ganti seperti *Ia*.
-
-### 2.3 `context_expansion.py`
-
-Berisi fungsi `perluas_konteks()` untuk memperluas kandidat hasil retrieval menggunakan kalimat-kalimat dari blok dokumen yang sama.
-
-Fungsi ini merupakan komponen pendukung dan belum dipanggil secara otomatis oleh fungsi utama `ambil_jawaban()`.
-
-## 3. Fungsi Utama
-
-Fungsi utama modul Answer Processing adalah:
-
-`ambil_jawaban(info_pertanyaan, kandidat, kalimat_korpus=None)`
-
-Fungsi ini berada pada file `answer_processing.py`.
-
-Fungsi tersebut menerima hasil Question Processing, kandidat kalimat dari BM25, dan data korpus opsional untuk validasi konteks.
-
-Fungsi akan memeriksa kandidat berdasarkan urutan yang diterima, kemudian menjalankan aturan ekstraksi sesuai tipe jawaban.
-
-Jika ditemukan jawaban yang memenuhi aturan, fungsi mengembalikan jawaban dan ID kalimat sumber. Jika tidak ditemukan jawaban yang sesuai, fungsi mengembalikan `None`.
-
-## 4. Format Input
-
-### 4.1 `info_pertanyaan`
-
-Parameter `info_pertanyaan` berupa dictionary dari modul Question Processing.
-
-Contoh:
+### Antarmuka utama
 
 ```python
-{
-    "original_question": "Kapan Mohammad Hatta lahir?",
-    "answer_type": "DATE"
-}
+ambil_jawaban(info_pertanyaan, kandidat, kalimat_korpus=None)
 ```
 
-Keterangan:
+Parameter:
 
-- `original_question`: pertanyaan asli dari pengguna.
-- `answer_type`: tipe jawaban yang diharapkan, misalnya `DATE`, `PER`, `LOC`, atau `NUM`.
+- `info_pertanyaan` (dictionary): setidaknya berisi `original_question` dan `answer_type`.
+- `kandidat` (list dictionary): hasil BM25 yang memuat `id_kalimat` dan `teks_asli`; `skor` boleh tersedia, tetapi tidak dipakai untuk menghitung ulang peringkat di modul ini.
+- `kalimat_korpus` (opsional): daftar kalimat korpus dengan `id_kalimat`, `id_blok`, dan `teks_asli`. Diperlukan pada kasus validasi konteks antarkalimat, misalnya kata ganti pada kalimat kelahiran Hatta.
 
-### 4.2 `kandidat`
+Kandidat diperiksa sesuai urutan hasil BM25. Modul mengembalikan **jawaban pertama yang memenuhi aturan**, tanpa pemeringkatan ulang jawaban.
 
-Parameter `kandidat` berupa list dictionary hasil Passage Retrieval menggunakan BM25.
-
-Contoh:
+Jika ditemukan jawaban:
 
 ```python
-[
-    {
-        "id_kalimat": "D08-B0004-K003",
-        "skor": 35.0,
-        "teks_asli": (
-            "Ia lahir dengan nama Muhammad Athar "
-            "pada tanggal 12 Agustus 1902."
-        )
-    }
-]
+{"jawaban": "12 Agustus 1902", "id_kalimat": "D08-B0004-K003"}
 ```
 
-Keterangan:
+Jika tidak ada kandidat yang memenuhi aturan, hasilnya `None`.
 
-- `id_kalimat`: identitas kalimat dalam korpus.
-- `skor`: skor relevansi BM25. Nilai pada contoh hanya ilustrasi.
-- `teks_asli`: teks kalimat yang akan diproses untuk ekstraksi jawaban.
+## 3. Aturan Ekstraksi
 
-Answer Processing menggunakan urutan kandidat dari BM25. Modul belum melakukan pemeringkatan ulang kandidat secara terpisah.
+### 3.1 DATE — Tanggal, tahun, serta bulan dan tahun
 
-### 4.3 `kalimat_korpus`
+Fungsi terkait antara lain `ekstrak_tanggal()`, `ekstrak_tahun()`, `ekstrak_tahun_pendirian()`, `ekstrak_bulan_tahun()`, dan `pilih_tanggal()`.
 
-Parameter `kalimat_korpus` bersifat opsional dan berisi daftar kalimat dari korpus.
+- **Tanggal lengkap**: mengenali bentuk seperti `12 Agustus 1902`, dengan pemilihan berdasarkan peristiwa atau klausa pada pola yang didukung.
+- **Tahun pendirian organisasi**: untuk bentuk pertanyaan `Pada tahun berapa ... mendirikan [organisasi]?`, kalimat harus menyebut organisasi yang sama dan peristiwa pendiriannya. Contoh D09: `1948` dari `D09-B0002-K001`.
+- **Bulan dan tahun**: untuk pertanyaan yang meminta bulan, ekstraksi mengembalikan bentuk seperti `Desember 1948`, bukan tanggal lengkap. Contoh D16: `D16-B0001-K001`.
+- **Validasi tokoh kelahiran**: pada pola `Kapan [tokoh] lahir?`, identitas subjek diperiksa. Jika kalimat menggunakan kata ganti seperti *Ia*, modul memeriksa kalimat pendukung dalam blok yang sama melalui `validasi_tokoh.py`.
 
-Contoh struktur satu item:
+Contoh D08: `Kapan Mohammad Hatta lahir?` → `12 Agustus 1902` (`D08-B0004-K003`).
 
-```python
-{
-    "id_kalimat": "D08-B0004-K001",
-    "id_blok": "D08-B0004",
-    "teks_asli": (
-        "Mohammad Hatta lahir dari pasangan "
-        "Muhammad Djamil dan Siti Saleha."
-    )
-}
-```
+### 3.2 PER — Tokoh berdasarkan hubungan peristiwa dan peran
 
-Parameter ini diperlukan untuk pemeriksaan konteks tertentu, khususnya ketika kalimat jawaban menggunakan kata ganti seperti *Ia*.
+Fungsi `identifikasi_peristiwa_per()` memilih kategori peristiwa yang didukung, lalu `ekstrak_pelaku()` mencari nama pada pola kalimat yang sesuai.
 
-Contohnya, pertanyaan kelahiran Mohammad Hatta memerlukan kalimat pendukung dari blok dokumen yang sama untuk membantu mengidentifikasi subjek.
+Cakupan pola yang digunakan dalam evaluasi resmi:
 
-Jika parameter tidak diberikan, kandidat yang membutuhkan validasi konteks dapat ditolak.
+| Hubungan dalam kalimat | Contoh ID | Jawaban |
+|---|---|---|
+| Pemberian julukan | D04 | Mohammad Yamin |
+| Komandan pasukan yang tewas | D13 | Brigadir A. W. S. Mallaby |
+| Tokoh terpilih menjadi panglima | D12 | Sudirman |
+| Pelaku peledakan | D14 | Muhammad Toha |
+| Pemimpin pasukan dengan jabatan Letkol | D17 | Letkol Soeharto |
+| Tokoh yang bertindak sebagai perantara | D18 | Lord Killearn |
+| Kepala delegasi | D20 | Mohamad Roem |
+| Pasangan tokoh dan jabatan yang dihubungkan oleh `masing-masing` | D03 | Mohammad Hatta |
 
-## 5. Format Output
+Pola memeriksa hubungan nama dengan tindakan atau jabatan, bukan sekadar mengambil nama pertama dari sebuah kalimat. Dukungan bentuk nama dan struktur kalimat tetap terbatas pada pola yang diimplementasikan.
 
-Jika jawaban ditemukan, fungsi mengembalikan dictionary dengan dua informasi:
+### 3.3 LOC — Lokasi kelahiran dan lokasi peristiwa
 
-```python
-{
-    "jawaban": "12 Agustus 1902",
-    "id_kalimat": "D08-B0004-K003"
-}
-```
+Fungsi `ekstrak_lokasi()` menangani lokasi kelahiran; `ekstrak_lokasi_peristiwa()` menangani beberapa jenis lokasi peristiwa. Untuk kelahiran, `ambil_tokoh_pertanyaan()` dan `cek_subjek_kelahiran()` memvalidasi tokoh agar lokasi orang lain tidak terambil.
 
-Keterangan:
+| Hubungan lokasi | Contoh ID | Jawaban |
+|---|---|---|
+| Tempat kelahiran | D11 | Bengkulu |
+| Lokasi pembukaan persidangan | D02 | Gedung Chuo Sangi In di Jakarta |
+| Kota tujuan pengasingan | D07 | Ende |
+| Lokasi operasi pendaratan tertentu | D15 | Pasir Poetih, Situbondo |
+| Tempat kapal berlabuh | D19 | Teluk Jakarta |
 
-- `jawaban`: hasil ekstraksi sesuai tipe jawaban.
-- `id_kalimat`: ID kalimat yang digunakan sebagai sumber jawaban.
+Untuk D15, aturan membedakan lokasi *Produk Utara* dari lokasi operasi lain dalam kalimat yang sama. Untuk D11, bentuk `Di mana` dan `Dimana` sama-sama dikenali.
 
-Jika tidak ada kandidat yang memenuhi aturan ekstraksi dan validasi, fungsi mengembalikan:
+### 3.4 NUM — Jumlah berbentuk digit dan satuan
 
-```python
-None
-```
+Fungsi `ekstrak_angka()` mencari angka digit yang diikuti satuan sesuai pertanyaan, misalnya `anggota`, `orang`, `korban`, `pasukan`, `hari`, `bulan`, `tahun`, dan `negara bagian`.
 
-Nilai `None` dapat terjadi
+Pada kasus D21, kalimat `... terdiri dari 16 negara bagian ...` menghasilkan **`16 negara bagian`** (`D21-B0018-K003`). Untuk satuan lain, fungsi dapat mengembalikan angka saja mengikuti aturan yang tersedia.
 
-## 6. Aturan Ekstraksi Jawaban
+Bilangan berbentuk kata seperti `enam belas` belum ditangani secara umum.
 
-Modul Answer Processing menggunakan pendekatan *rule-based* untuk mengekstraksi jawaban dari kandidat kalimat hasil BM25.
+### 3.5 MISC — Objek faktual dengan pola terbatas
 
-Pemilihan aturan didasarkan pada nilai `answer_type` dari Question Processing. Setiap tipe jawaban memiliki pola ekstraksi dan pemeriksaan yang berbeda.
+Fungsi `ekstrak_misc()` menangani dua bentuk objek faktual pada evaluasi resmi:
 
-### 6.1 DATE — Ekstraksi Tanggal
+- **Sumber daya alam utama**, dari frasa seperti `sumber-sumber alam, terutama minyak bumi` → `Minyak bumi` (D01, `D01-B0009-K002`).
+- **Nama kapal penyerahan**, dari hubungan `menyerah kepada Sekutu di kapal USS Missouri` → `USS Missouri` (D06, `D06-B0007-K001`).
 
-Ekstraksi tanggal dilakukan menggunakan Regular Expression (RegEx) untuk mengenali tanggal lengkap dalam format hari, nama bulan, dan tahun.
+Kategori `MISC` **bukan ekstraksi entitas serbaguna**; hanya pola yang telah diimplementasikan yang dapat dijawab.
 
-Contoh:
+## 4. Perilaku Validasi dan Penolakan
 
-`12 Agustus 1902`
+Jika kandidat tidak memiliki pola dan hubungan peristiwa yang diperlukan, sistem melewatinya. Misalnya, pertanyaan tentang tahun pendirian Partai Sosialis Indonesia tidak boleh mengambil tanggal pendirian Partai Nasional Indonesia. Untuk beberapa pertanyaan kelahiran, kandidat dengan subjek tokoh berbeda juga ditolak.
 
-Fungsi utama yang digunakan adalah `ekstrak_tanggal()` dan `pilih_tanggal()`.
+Jika seluruh kandidat tidak memenuhi aturan, `ambil_jawaban()` mengembalikan `None`. Hal ini lebih aman daripada mengembalikan tanggal, nama, atau lokasi yang tidak terverifikasi oleh pola.
 
-Proses ekstraksi meliputi:
+## 5. Contoh Integrasi
 
-1. Mencari tanggal lengkap dalam kalimat kandidat.
-2. Mengidentifikasi peristiwa yang ditanyakan, seperti kelahiran, kematian, atau pelantikan.
-3. Memilih tanggal berdasarkan kesesuaian peristiwa dan klausa.
-4. Untuk pertanyaan kelahiran tokoh yang dikenali, memvalidasi identitas subjek menggunakan `validasi_tokoh()`.
-5. Jika kalimat menggunakan kata ganti seperti *Ia*, memeriksa kalimat pendukung dalam blok dokumen yang sama menggunakan `periksa_konteks_tokoh()`.
-
-Contoh:
-
-**Pertanyaan:** Kapan Mohammad Hatta lahir?
-
-**Kalimat sumber:** Ia lahir dengan nama Muhammad Athar pada tanggal 12 Agustus 1902.
-
-**Jawaban:** 12 Agustus 1902.
-
-**ID sumber:** `D08-B0004-K003`
-
-Validasi konteks menggunakan kalimat `D08-B0004-K001` yang menyebut Mohammad Hatta sebagai subjek kelahiran.
-
-### 6.2 PER — Ekstraksi Nama Tokoh
-
-Ekstraksi `PER` digunakan untuk menemukan nama orang yang berkaitan dengan peristiwa dalam pertanyaan.
-
-Fungsi yang digunakan adalah `identifikasi_peristiwa_per()` dan `ekstrak_pelaku()`.
-
-Implementasi saat ini mengenali dua kategori peristiwa utama:
-
-- `PEMBERIAN_JULUKAN`: mencari tokoh yang memberikan julukan.
-- `KOMANDAN_TEWAS`: mencari nama komandan yang berkaitan secara eksplisit dengan peristiwa kematian.
-
-Proses ekstraksi meliputi:
-
-1. Mengidentifikasi kategori peristiwa dari pertanyaan.
-2. Memeriksa kesesuaian pola peristiwa pada kalimat kandidat.
-3. Mengekstraksi nama tokoh berdasarkan pola aktif atau pasif yang didukung.
-4. Menolak kandidat jika hubungan antara peristiwa dan nama tidak memenuhi aturan.
-
-Pola nama juga mendukung bentuk tertentu yang menggunakan gelar dan inisial, seperti `Brigadir A. W. S. Mallaby`.
-
-**Contoh 1**
-
-Pertanyaan: Siapa yang memberikan julukan Piagam Jakarta?
-
-Jawaban: Mohammad Yamin.
-
-ID sumber: `D04-B0017-K001`
-
-**Contoh 2**
-
-Pertanyaan: Siapa komandan pasukan Britania yang tewas dalam baku tembak pada 30 Oktober 1945 di Surabaya?
-
-Jawaban: Brigadir A. W. S. Mallaby.
-
-ID sumber: `D13-B0002-K002`
-
-### 6.3 LOC — Ekstraksi Lokasi
-
-Ekstraksi `LOC` saat ini difokuskan pada pertanyaan mengenai lokasi kelahiran tokoh.
-
-Fungsi yang digunakan adalah `ambil_tokoh_pertanyaan()`, `cek_subjek_kelahiran()`, dan `ekstrak_lokasi()`.
-
-Proses ekstraksi meliputi:
-
-1. Mengambil nama tokoh dari pertanyaan lokasi kelahiran.
-2. Memeriksa apakah subjek kelahiran dalam kandidat sesuai dengan tokoh yang ditanyakan.
-3. Mencari lokasi yang mengikuti pola kelahiran, seperti `lahir ... di [lokasi]`.
-4. Membatasi pencarian agar tidak mengambil lokasi dari peristiwa lain yang dipisahkan oleh penanda tertentu.
-5. Mengembalikan `None` jika lokasi atau identitas tokoh tidak memenuhi aturan.
-
-Contoh:
-
-**Pertanyaan:** Di mana Fatmawati dilahirkan?
-
-**Kalimat sumber:** Fatmawati lahir pada 5 Februari 1923 di Bengkulu dari pasangan Hasan Din dan Siti Chadijah.
-
-**Jawaban:** Bengkulu.
-
-**ID sumber:** `D11-B0002-K001`
-
-### 6.4 NUM — Ekstraksi Angka
-
-Ekstraksi `NUM` digunakan untuk mengambil angka berdasarkan satuan yang disebutkan dalam pertanyaan.
-
-Fungsi yang digunakan adalah `ekstrak_angka()`.
-
-Satuan yang dikenali dalam implementasi saat ini meliputi:
-
-- anggota
-- orang
-- korban
-- pasukan
-- hari
-- bulan
-- tahun
-
-Proses ekstraksi meliputi:
-
-1. Mengidentifikasi kata satuan pada pertanyaan.
-2. Mencari bilangan berbentuk digit yang diikuti satuan sesuai.
-3. Mengembalikan bilangan yang ditemukan.
-4. Mengembalikan `None` jika tidak ditemukan pasangan angka dan satuan yang sesuai.
-
-Contoh:
-
-**Pertanyaan:** Berapa jumlah anggota panitia?
-
-**Kalimat:** Panitia tersebut terdiri dari 9 anggota.
-
-**Jawaban:** 9.
-
-Contoh `NUM` ini menggunakan kalimat pengujian buatan, bukan kutipan dari korpus sejarah.
-
-Implementasi saat ini belum mendukung bilangan yang ditulis menggunakan kata, misalnya `sembilan anggota`.
-
-## 7. Contoh Penggunaan Modul
-
-Berikut contoh penggunaan Answer Processing bersama Question Processing dan Passage Retrieval (BM25).
+Jalankan dari direktori utama proyek:
 
 ```python
 import json
-
 from question_processing import process_question
 from passage_retrieval import cari
 from answer_processing import ambil_jawaban
 
-# Pertanyaan pengguna
 pertanyaan = "Kapan Mohammad Hatta lahir?"
-
-# Tahap 1: Question Processing
 info_pertanyaan = process_question(pertanyaan)
-
-# Tahap 2: Passage Retrieval
 kandidat = cari(pertanyaan, k=20)
 
-# Membaca korpus untuk validasi konteks
 with open("korpus_kalimat_final.json", encoding="utf-8") as file:
-    data = json.load(file)
+    kalimat_korpus = json.load(file)["kalimat"]
 
-kalimat_korpus = data["kalimat"]
-
-# Tahap 3: Answer Processing
 hasil = ambil_jawaban(
     info_pertanyaan,
     kandidat,
     kalimat_korpus=kalimat_korpus
 )
-
 print(hasil)
 ```
 
-Hasil yang diperoleh pada pengujian:
+Hasil pada pengujian resmi:
 
 ```python
-{
-    "jawaban": "12 Agustus 1902",
-    "id_kalimat": "D08-B0004-K003"
-}
+{'jawaban': '12 Agustus 1902', 'id_kalimat': 'D08-B0004-K003'}
 ```
 
-**Catatan integrasi:** Parameter `kalimat_korpus` sebaiknya diberikan ketika tersedia karena digunakan untuk memvalidasi konteks pada pertanyaan tertentu. Nilai `k=20` adalah konfigurasi yang digunakan pada pengujian ini, bukan nilai optimal yang sudah dibuktikan untuk seluruh pertanyaan.
+Nilai `k=20` adalah konfigurasi yang digunakan pada pengujian ini, bukan nilai optimal yang dibuktikan untuk semua pertanyaan.
 
-## 8. Hasil Pengujian
+## 6. Evaluasi
 
-Pengujian dilakukan menggunakan kalimat buatan untuk menguji aturan tertentu dan kalimat asli dari korpus sejarah Indonesia.
+### 6.1 Evaluasi resmi D01–D21
 
-### 8.1 Pengujian Ekstraksi Dasar
+Evaluasi dijalankan melalui `tests/test_evaluasi_resmi.py`, menggunakan 21 pertanyaan dari daftar resmi kelompok, alur Question Processing → BM25 (`k=20`) → Answer Processing, dan jawaban acuan yang telah disiapkan.
 
-| Tipe | Contoh jawaban | Hasil |
-|---|---|---|
-| DATE | 12 Agustus 1902 | PASS |
-| PER | Mohammad Yamin | PASS |
-| LOC | Bengkulu | PASS |
-| NUM | 9 | PASS |
+Perintah dari direktori proyek:
 
-Hasil `tests/test_semua_tipe.py`: **4/4 PASS**.
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+python tests/test_evaluasi_resmi.py
+```
 
-### 8.2 Pengujian Integrasi dengan BM25
+**Hasil verifikasi terakhir selama pengembangan:** semua 21 baris status menunjukkan `COCOK PERSIS`.
 
-| Pertanyaan | Jawaban | ID Sumber | Hasil |
-|---|---|---|---|
-| Kapan Mohammad Hatta lahir? | 12 Agustus 1902 | D08-B0004-K003 | PASS |
-| Siapa pemberi julukan Piagam Jakarta? | Mohammad Yamin | D04-B0017-K001 | PASS |
-| Di mana Fatmawati dilahirkan? | Bengkulu | D11-B0002-K001 | PASS |
-| Siapa komandan pasukan Britania yang tewas di Surabaya? | Brigadir A. W. S. Mallaby | D13-B0002-K002 | PASS |
+| Tipe | Cocok persis | Total |
+|---|---:|---:|
+| DATE | 5 | 5 |
+| PER | 8 | 8 |
+| LOC | 5 | 5 |
+| MISC | 2 | 2 |
+| NUM | 1 | 1 |
+| **Total** | **21** | **21** |
 
-Keempat pertanyaan tersebut merupakan contoh yang digunakan selama proses pengembangan dan pengujian. Hasilnya tidak dapat dianggap sebagai akurasi keseluruhan sistem.
+**Exact Match pada 21 pertanyaan resmi: 21/21 (100%).** Angka ini merupakan hasil *end-to-end* pada daftar yang juga dipakai selama pengembangan dan penyesuaian aturan; bukan evaluasi generalisasi pada pertanyaan baru maupun pengukuran kinerja Answer Processing secara terisolasi. Status cocok persis didasarkan pada perbandingan teks jawaban dengan acuan dalam evaluator. ID sumber juga ditampilkan, tetapi status tersebut tidak menghitung akurasi ID sumber secara terpisah.
 
-### 8.3 Pengujian Negatif dan Validasi
+### 6.2 Pengujian regresi
 
-Pengujian negatif digunakan untuk memeriksa kemampuan modul menolak jawaban yang tidak sesuai dengan pertanyaan.
+Pengujian yang dijalankan setelah pembaruan mencakup:
 
-Hasil yang diperoleh:
+- Validasi dan konteks DATE (`tests/test_date_validasi_integrasi.py`, `tests/test_konteks_date_hatta.py`): PASS pada hasil terminal.
+- Uji negatif dan integrasi PER (`tests/test_per_negatif.py`, `tests/test_integrasi_surabaya.py`): PASS pada hasil terminal.
+- Uji negatif dan validasi subjek LOC (`tests/test_lokasi_negatif.py`, `tests/test_validasi_subjek_loc.py`): seluruh 7 kasus PASS pada hasil terminal.
 
-- Tiga pengujian negatif `PER` berhasil, termasuk penolakan kandidat dengan hubungan jabatan yang ambigu.
-- Validasi `DATE` berhasil menolak tanggal milik tokoh lain dan menggunakan konteks pada contoh Mohammad Hatta.
-- Pengujian lokasi negatif: 4/4 PASS.
-- Pengujian validasi subjek lokasi: 3/3 PASS.
-- Pengujian ekstraksi angka: 5/5 PASS.
-- Pengujian konteks ambigu yang dibuat: nama tokoh tidak langsung diterima sebagai rujukan kata ganti.
+Pengujian regresi menunjukkan perilaku pada kasus yang diuji tetap terjaga setelah perluasan aturan; ini bukan bukti mencakup semua variasi kalimat bahasa Indonesia.
 
-Pengujian tersebut memverifikasi perilaku pada contoh yang diuji, bukan membuktikan bahwa seluruh
+## 7. Keterbatasan
 
-## 9. Keterbatasan Sistem
+- **Ketergantungan pada pola:** fungsi belum memahami makna kalimat secara umum. Perubahan susunan kata, variasi istilah, atau relasi yang tidak tercakup dapat menghasilkan `None`.
+- **Generalisasi terbatas:** beberapa pola mengandalkan istilah peristiwa, jabatan, atau entitas yang spesifik. Hasil 21/21 adalah hasil pada set yang telah digunakan untuk mengembangkan aturan.
+- **Tipe di luar cakupan:** `REASON` dan `DESCRIPTION` belum ditangani oleh fungsi utama. `MISC` hanya memiliki pola objek tertentu.
+- **Bilangan dan waktu:** `NUM` belum secara umum mengekstraksi bilangan berbentuk kata; `DATE` juga belum mencakup semua variasi penulisan waktu atau seluruh jenis peristiwa.
+- **Rujukan antarkalimat:** validasi kata ganti menggunakan heuristik dalam blok yang sama, bukan *coreference resolution* umum.
+- **Ketergantungan pada retrieval:** jika sumber jawaban tidak masuk kandidat BM25, Answer Processing tidak dapat mengambil jawaban tersebut. Modul mengembalikan hasil pertama yang lolos aturan, tanpa pemeringkatan ulang kandidat secara global.
 
-Beberapa keterbatasan implementasi Answer Processing saat ini adalah:
+## 8. Catatan Integrasi Kelompok
 
-Cakupan tipe jawaban. Ekstraksi baru diterapkan pada DATE, PER, LOC, dan NUM. Tipe MISC, REASON, dan DESCRIPTION belum didukung.
+Modul utama dapat dipanggil melalui `ambil_jawaban(info_pertanyaan, kandidat, kalimat_korpus=kalimat_korpus)` dan akan mengembalikan dictionary `jawaban`/`id_kalimat` atau `None`. Berkas `validasi_tokoh.py` merupakan dependensi langsung. `context_expansion.py` adalah utilitas terpisah dan tidak wajib dipanggil oleh jalur integrasi evaluasi resmi.
 
-Format tanggal. Ekstraksi DATE terutama mengenali tanggal lengkap dengan format hari, nama bulan, dan tahun. Tahun tunggal dan variasi penulisan tanggal lainnya belum ditangani secara menyeluruh.
-
-Cakupan nama tokoh. Ekstraksi PER menggunakan pola peristiwa tertentu, terutama pemberian julukan dan komandan yang tewas. Pola ini belum dapat digunakan untuk seluruh jenis pertanyaan tentang tokoh sejarah.
-
-Cakupan lokasi. Ekstraksi LOC masih berfokus pada lokasi kelahiran tokoh dan belum mendukung seluruh jenis pertanyaan lokasi.
-
-Format bilangan. Ekstraksi NUM mengenali digit yang diikuti satuan tertentu. Bilangan berbentuk kata seperti sembilan belum didukung.
-
-Ambiguitas kata ganti. Validasi konteks antarkalimat masih menggunakan heuristik. Sistem belum memiliki mekanisme coreference resolution umum dan dapat mengembalikan None ketika identitas subjek belum dapat dipastikan.
-
-Pemilihan kandidat. Answer Processing memeriksa kandidat berdasarkan urutan dari BM25 dan mengambil jawaban pertama yang memenuhi aturan. Modul belum menerapkan pemeringkatan ulang jawaban secara menyeluruh.
-
-Ketergantungan pada pola kalimat. Jawaban yang sebenarnya terdapat dalam korpus dapat tidak ditemukan jika struktur kalimat belum sesuai dengan aturan ekstraksi.
-
-Keterbatasan tersebut menjadi pertimbangan untuk pengembangan sistem dan evaluasi lebih lanjut.
+Perubahan pada modul ini dilakukan untuk kebutuhan 21 pertanyaan resmi; penerapan pada data dan pertanyaan baru perlu evaluasi tambahan oleh tim.

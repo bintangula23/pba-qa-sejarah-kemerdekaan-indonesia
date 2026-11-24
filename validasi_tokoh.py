@@ -92,7 +92,7 @@ def ambil_tokoh_pertanyaan(pertanyaan):
     """
 
     pola = (
-        r"^\s*di\s+mana\s+(.+?)\s+"
+        r"^\s*di\s*mana\s+(.+?)\s+"
         r"(?:lahir|dilahirkan)\s*\?$"
     )
 
