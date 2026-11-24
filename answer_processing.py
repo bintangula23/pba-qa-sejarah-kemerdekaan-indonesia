@@ -13,7 +13,9 @@ import re
 
 from validasi_tokoh import (
     ambil_tokoh_pertanyaan,
-    cek_subjek_kelahiran
+    cek_subjek_kelahiran,
+    validasi_tokoh,
+    periksa_konteks_tokoh
 )
 
 def ekstrak_tanggal(teks):
@@ -117,10 +119,92 @@ def pilih_tanggal(pertanyaan, teks):
 
     return None    
 
-def ekstrak_pelaku(teks):
+def identifikasi_peristiwa_per(pertanyaan):
+    """
+    Mengidentifikasi jenis peristiwa untuk pertanyaan PER.
+    """
+
+    pertanyaan = pertanyaan.lower()
+
+    if "julukan" in pertanyaan:
+        return "PEMBERIAN_JULUKAN"
+
+    if "komandan" in pertanyaan and "tewas" in pertanyaan:
+        return "KOMANDAN_TEWAS"
+
+    return None
+
+def ekstrak_pelaku(teks, peristiwa=None):
     """
     Mengekstraksi kandidat nama pelaku dari kalimat aktif atau pasif sederhana.
     """
+
+    # Ekstraksi khusus peristiwa pemberian julukan
+    if peristiwa == "PEMBERIAN_JULUKAN":
+
+        pola_julukan = [
+            # Nama memberikan julukan
+            (
+                r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)"
+                r"\s+memberikan\s+julukan\b"
+            ),
+
+            # Diberi julukan ... oleh Nama
+            (
+                r"\bdiberi\s+julukan\b"
+                r"[^.!?\n]{0,120}?"
+                r"\boleh\s+"
+                r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
+            ),
+
+            # Dijuluki ... oleh Nama
+            (
+                r"\bdijuluki\b"
+                r"[^.!?\n]{0,120}?"
+                r"\boleh\s+"
+                r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
+            )
+        ]
+
+        for pola in pola_julukan:
+            hasil = re.search(pola, teks)
+
+            if hasil:
+                return hasil.group(1)
+
+        return None
+
+    elif peristiwa == "KOMANDAN_TEWAS":
+
+        nama_berinisial = (
+            r"((?:[A-Z][a-z]+\s+)?"
+            r"(?:[A-Z]\.\s*)+"
+            r"[A-Z][a-z]+)"
+        )
+
+        pola_komandan = [
+            # Jabatan, nama, lalu tewas
+            (
+                r"(?i:\bkomandan\s+pasukan\s+[^,]+,\s+)"
+                + nama_berinisial
+                + r"\s*,?\s*(?i:tewas)\b"
+            ),
+
+            # Jabatan yang tewas adalah nama
+            (
+                r"(?i:\bkomandan\s+pasukan\s+"
+                r"[^,.!?]+?\s+yang\s+tewas\s+adalah\s+)"
+                + nama_berinisial
+            )
+        ]
+
+        for pola in pola_komandan:
+            hasil = re.search(pola, teks)
+
+            if hasil:
+                return hasil.group(1)
+
+        return None
 
     pola_aktif = (
         r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)"
@@ -152,6 +236,42 @@ def ekstrak_pelaku(teks):
 
     if hasil:
         return hasil.group(1)
+
+    # Pola nama tokoh yang menggunakan gelar dan inisial
+    nama_berinisial = (
+        r"((?:[A-Z][a-z]+\s+)?"
+        r"(?:[A-Z]\.\s*)+"
+        r"[A-Z][a-z]+)"
+    )
+
+    # Jabatan, nama, kemudian peristiwa tewas
+    pola_jabatan_tewas = (
+        r"(?i:\bkomandan\s+pasukan\s+[^,]+,\s+)"
+        + nama_berinisial
+        + r"\s*,?\s*(?i:tewas)\b"
+    )
+
+    # Nama langsung diikuti peristiwa tewas
+    pola_nama_tewas = (
+        r"\b" + nama_berinisial + r"\s+(?i:tewas)\b"
+    )
+
+    # Jabatan yang tewas adalah nama
+    pola_jabatan_adalah = (
+        r"(?i:\bkomandan\s+pasukan\s+"
+        r".+?\s+yang\s+tewas\s+adalah\s+)"
+        + nama_berinisial
+    )
+
+    for pola in [
+        pola_jabatan_tewas,
+        pola_nama_tewas,
+        pola_jabatan_adalah
+    ]:
+        hasil = re.search(pola, teks)
+
+        if hasil:
+            return hasil.group(1)
 
     return None
 
@@ -211,7 +331,26 @@ def ekstrak_angka(pertanyaan, teks):
 
     return None
 
-def ambil_jawaban(info_pertanyaan, kandidat):
+def ambil_tokoh_pertanyaan_tanggal(pertanyaan):
+    """
+    Mengambil nama tokoh dari pertanyaan:
+    'Kapan [nama tokoh] lahir?'
+    """
+
+    pola = r"^\s*kapan\s+(.+?)\s+lahir\s*\?$"
+
+    hasil = re.search(pola, pertanyaan, flags=re.IGNORECASE)
+
+    if hasil:
+        return hasil.group(1).strip()
+
+    return None
+
+def ambil_jawaban(
+    info_pertanyaan, 
+    kandidat,
+    kalimat_korpus=None
+):
     """
     Mengambil jawaban dari kandidat hasil passage retrieval.
 
@@ -232,10 +371,67 @@ def ambil_jawaban(info_pertanyaan, kandidat):
         id_kalimat = item.get("id_kalimat")
 
         if tipe_jawaban == "DATE":
+
+            nama_tokoh = ambil_tokoh_pertanyaan_tanggal(pertanyaan)
+
+            if nama_tokoh is not None:
+
+                status_tokoh = validasi_tokoh(nama_tokoh, teks)
+
+                if status_tokoh == "TIDAK_COCOK":
+                    continue
+
+                elif status_tokoh == "PERLU_KONTEKS":
+
+                    if kalimat_korpus is None:
+                        continue
+
+                    # Cari kalimat dalam blok sumber yang sama.
+                    blok_target = id_kalimat.rsplit("-K", 1)[0]
+
+                    kalimat_blok = [
+                        item
+                        for item in kalimat_korpus
+                        if item["id_blok"] == blok_target
+                    ]
+
+                    id_pendukung = periksa_konteks_tokoh(
+                        nama_tokoh,
+                        id_kalimat,
+                        kalimat_blok
+                    )
+
+                    if id_pendukung is None:
+                        continue
+
+                    kalimat_pendukung = next(
+                        (
+                            item["teks_asli"]
+                            for item in kalimat_blok
+                            if item["id_kalimat"] == id_pendukung
+                        ),
+                        None
+                    )
+
+                    if kalimat_pendukung is None:
+                        continue
+
+                    if validasi_tokoh(
+                        nama_tokoh,
+                        kalimat_pendukung
+                    ) != "COCOK":
+                        continue
+
             jawaban = pilih_tanggal(pertanyaan, teks)
 
         elif tipe_jawaban == "PER":
-            jawaban = ekstrak_pelaku(teks)
+
+            peristiwa = identifikasi_peristiwa_per(pertanyaan)
+
+            if peristiwa is None:
+                continue
+
+            jawaban = ekstrak_pelaku(teks, peristiwa)
 
         elif tipe_jawaban == "LOC":
             nama_tokoh = ambil_tokoh_pertanyaan(pertanyaan)

@@ -1,3 +1,10 @@
+import json
+
+with open("korpus_kalimat_final.json", encoding="utf-8") as file:
+    data = json.load(file)
+
+kalimat_korpus = data["kalimat"]
+
 from question_processing import process_question
 from passage_retrieval import cari
 from answer_processing import ambil_jawaban
@@ -31,7 +38,11 @@ for kasus in kasus_uji:
 
     info = process_question(pertanyaan)
     kandidat = cari(pertanyaan, k=20)
-    hasil = ambil_jawaban(info, kandidat)
+    hasil = ambil_jawaban(
+        info,
+        kandidat,
+        kalimat_korpus=kalimat_korpus
+    )
 
     jawaban = hasil["jawaban"] if hasil else None
     id_sumber = hasil["id_kalimat"] if hasil else None

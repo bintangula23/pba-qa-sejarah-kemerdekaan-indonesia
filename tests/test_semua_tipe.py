@@ -1,6 +1,13 @@
+import json
+
 from question_processing import process_question
 from answer_processing import ambil_jawaban
 
+# baca korpus untuk validasi konteks
+with open("korpus_kalimat_final.json", encoding="utf-8") as file:
+    data = json.load(file)
+
+kalimat_korpus = data["kalimat"]
 kasus_uji = [
     {
         "tipe": "DATE",
@@ -64,7 +71,12 @@ jumlah_pass = 0
 
 for kasus in kasus_uji:
     info = process_question(kasus["pertanyaan"])
-    hasil = ambil_jawaban(info, kasus["kandidat"])
+
+    hasil = ambil_jawaban(
+        info,
+        kasus["kandidat"],
+        kalimat_korpus=kalimat_korpus
+    )
 
     jawaban = hasil["jawaban"] if hasil else None
 
