@@ -206,7 +206,7 @@ def pilih_tanggal(pertanyaan, teks):
     if len(jawaban_unik) == 1:
         return jawaban_unik[0]
 
-    return None    
+    return None
 
 def identifikasi_peristiwa_per(pertanyaan):
     """
@@ -237,7 +237,7 @@ def identifikasi_peristiwa_per(pertanyaan):
         return "KEPALA_DELEGASI"
 
     if "ditunjuk" in pertanyaan and "wakil presiden" in pertanyaan:
-        return "PENUNJUKAN_WAKIL_PRESIDEN"    
+        return "PENUNJUKAN_WAKIL_PRESIDEN"
 
     return None
 
@@ -336,7 +336,7 @@ def ekstrak_pelaku(teks, peristiwa=None):
             return hasil.group(2)
 
         return None
-    
+
     if peristiwa == "PEMBERIAN_JULUKAN":
 
         pola_julukan = [
@@ -608,7 +608,7 @@ def ekstrak_angka(pertanyaan, teks):
             if hasil:
                 if kata == "negara bagian":
                     return hasil.group(0)
-                
+
                 return hasil.group(1)
 
     return None
@@ -684,7 +684,7 @@ def ambil_tokoh_pertanyaan_tanggal(pertanyaan):
     return None
 
 def ambil_jawaban(
-    info_pertanyaan, 
+    info_pertanyaan,
     kandidat,
     kalimat_korpus=None
 ):
@@ -795,7 +795,7 @@ def ambil_jawaban(
                 )
 
         elif tipe_jawaban == "NUM":
-            jawaban = ekstrak_angka(pertanyaan, teks)    
+            jawaban = ekstrak_angka(pertanyaan, teks)
 
         elif tipe_jawaban == "MISC":
             jawaban = ekstrak_misc(pertanyaan, teks)
