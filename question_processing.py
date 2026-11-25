@@ -1,6 +1,7 @@
 import json
 import re
 from pathlib import Path
+from datetime import date
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -27,13 +28,16 @@ def load_alias():
     return alias
 
 
+
+from datetime import date
+
 def normalize_question(question, alias=None):
     if alias is None:
         alias = load_alias()
 
     question = question.lower()
-
     question = re.sub(r"\s+", " ", question).strip()
+
     for old, new in sorted(
         alias.items(),
         key=lambda item: len(item[0]),
@@ -56,20 +60,99 @@ def normalize_question(question, alias=None):
         "11": "november",
         "12": "desember"
     }
-    
+
+    def format_tanggal(tahun, angka_bulan, tanggal):
+        try:
+            tanggal_valid = date(
+                int(tahun),
+                int(angka_bulan),
+                int(tanggal)
+            )
+
+            return (
+                f"{tanggal_valid.day} "
+                f"{bulan[tanggal_valid.strftime('%m')]} "
+                f"{tanggal_valid.year}"
+            )
+
+        except ValueError:
+            return None
+
+    def ganti_iso(match):
+        hasil = format_tanggal(
+            match.group(1),
+            match.group(2),
+            match.group(3)
+        )
+
+        return hasil if hasil else match.group(0)
+
+    question = re.sub(
+        r"(?<!\d)(\d{4})-(\d{1,2})-(\d{1,2})(?!\d)",
+        ganti_iso,
+        question
+    )
+
     def ganti_tanggal(match):
-        tanggal = str(int(match.group(1)))
-        angka_bulan = match.group(2).zfill(2)
-        tahun = match.group(3)
+        hasil = format_tanggal(
+            match.group(3),
+            match.group(2),
+            match.group(1)
+        )
 
-        if angka_bulan not in bulan:
-            return match.group(0)
-
-        return f"{tanggal} {bulan[angka_bulan]} {tahun}"
+        return hasil if hasil else match.group(0)
 
     question = re.sub(
         r"(?<!\d)(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?!\d)",
         ganti_tanggal,
+        question
+    )
+
+    bulan_inggris = {
+        "jan": "01",
+        "january": "01",
+        "feb": "02",
+        "february": "02",
+        "mar": "03",
+        "march": "03",
+        "apr": "04",
+        "april": "04",
+        "may": "05",
+        "jun": "06",
+        "june": "06",
+        "jul": "07",
+        "july": "07",
+        "aug": "08",
+        "august": "08",
+        "sep": "09",
+        "sept": "09",
+        "september": "09",
+        "oct": "10",
+        "october": "10",
+        "nov": "11",
+        "november": "11",
+        "dec": "12",
+        "december": "12"
+    }
+
+    def ganti_bulan_inggris(match):
+        angka_bulan = bulan_inggris[match.group(2)]
+
+        hasil = format_tanggal(
+            match.group(3),
+            angka_bulan,
+            match.group(1)
+        )
+
+        return hasil if hasil else match.group(0)
+
+    pola_bulan = "|".join(
+        sorted(bulan_inggris.keys(), key=len, reverse=True)
+    )
+
+    question = re.sub(
+        rf"\b(\d{{1,2}})\s+({pola_bulan})\s+(\d{{4}})\b",
+        ganti_bulan_inggris,
         question
     )
 
@@ -80,15 +163,34 @@ def classify_question(question, alias=None):
     question = normalize_question(question, alias)
     question = question.lower().strip()
 
-    if re.search(r"\b(siapa|siapakah)\b", question):
+    if re.search(
+        r"\b(tokoh|orang|pemimpin|presiden|menteri)\s+manakah\b",
+        question
+    ):
+        return "SIAPA"
+
+    elif re.search(
+        r"\b(?:ke|di|dari)\s+"
+        r"(?:kota|tempat|daerah|wilayah|lokasi)\s+manakah\b",
+        question
+    ):
+        return "DI_MANA"
+
+    elif re.search(
+        r"\b(?:pada|sejak|hingga|sampai)?\s*"
+        r"(tahun|tanggal|bulan|hari|masa|periode)\s+manakah\b",
+        question
+    ):
+        return "KAPAN"
+
+    elif re.search(r"\b(siapa|siapakah)\b", question):
         return "SIAPA"
 
     elif re.search(
         r"\b(dimana|dimanakah|"
         r"di\s+(?:\w+\s+)?mana(?:kah)?|"
         r"ke\s+(?:\w+\s+)?mana(?:kah)?|"
-        r"dari\s+(?:\w+\s+)?mana(?:kah)?|"
-        r"manakah)\b",
+        r"dari\s+(?:\w+\s+)?mana(?:kah)?)\b",
         question
     ):
         return "DI_MANA"
