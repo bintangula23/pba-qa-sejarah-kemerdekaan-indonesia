@@ -1,812 +1,435 @@
-"""
-Modul Answer Processing
-Penanggung jawab: Bintang
-
-Fungsi modul:
-1. Menerima hasil question processing.
-2. Menerima kandidat kalimat dari passage retrieval.
-3. Mengekstraksi jawaban berdasarkan answer_type.
-4. Mengembalikan jawaban beserta ID kalimat sumber.
+"""Answer Processing — QA Sejarah Indonesia, tanpa LLM
 """
 
 import re
-
+from collections import defaultdict
+from question_processing import normalize_question
 from validasi_tokoh import (
-    ambil_tokoh_pertanyaan,
-    cek_subjek_kelahiran,
-    validasi_tokoh,
-    periksa_konteks_tokoh
+    POLA_NAMA, POLA_KELAHIRAN, ambil_tokoh_pertanyaan,
+    validasi_tokoh, cek_subjek_kelahiran, periksa_konteks_tokoh,
 )
 
-def ekstrak_tanggal(teks):
-    """
-    Menemukan semua tanggal lengkap dalam sebuah teks.
-    Parameter:
-        teks (str): Kalimat sumber.
-    Return:
-        list: Daftar tanggal beserta posisi awal dan akhir.
-    """
+# pola bersama, kapitalisasi nama tidak dinonaktifkan oleh IGNORECASE global.
+NAMA = POLA_NAMA
+INISIAL = r"(?:[A-Z][a-z]+\s+)?(?:[A-Z]\.\s*)+[A-Z][a-z]+"
+LOKASI = rf"{NAMA}(?:,\s*{NAMA})?"
+ANGKA = r"(?<![\w.,])(?:\d{1,3}(?:\.\d{3})+|\d+)(?![\d.,])"
+BULAN = (r"Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|"
+         r"September|Oktober|November|Desember")
+SATUAN = ("negara bagian", "anggota", "orang", "korban", "pasukan", "hari", "bulan", "tahun")
+PENGHUBUNG = r"\b(?:dan kemudian|kemudian|lalu|setelah itu|sedangkan|sementara itu)\b|;"
 
-    bulan = (
-        r"Januari|Februari|Maret|April|Mei|Juni|"
-        r"Juli|Agustus|September|Oktober|November|Desember"
-    )
+# nama relasi internal, bukan nama tokoh, jawaban, atau ID evaluasi.
+RELASI_DATE = {
+    "KELAHIRAN": POLA_KELAHIRAN,
+    "PENDIRIAN": r"\b(?:mendirikan|didirikan|pendirian)\b",
+    "PELANTIKAN": r"\b(?:dilantik|melantik|pelantikan)\b",
+    "PEMBAWAAN": r"\b(?:dibawa(?:nya)?|membawa|pembawaan)\b",
+    "PELUNCURAN": r"\b(?:dilancarkan|melancarkan)\b",
+    "KEMERDEKAAN": r"\b(?:memproklamasikan\s+kemerdekaan|proklamasi\s+kemerdekaan|merdeka)\b",
+    "KEMATIAN": r"\b(?:meninggal|wafat)\b",
+    "PEMBENTUKAN": r"\b(?:dibentuk|membentuk)\b",
+    "PENANDATANGANAN": r"\b(?:ditandatangani|menandatangani)\b",
+    "PERMULAAN": r"\b(?:dimulai|memulai)\b",
+}
+RELASI_PER = {
+    "PEMBERIAN_JULUKAN": r"\b(?:julukan|dijuluki)\b",
+    "KOMANDAN_TEWAS": r"\bkomandan\b.*\btewas\b",
+    "PEMILIHAN_PANGLIMA": r"\b(?:terpilih|dipilih)\b.*\bpanglima\b",
+    "PELEDAKAN": r"\bmeledakkan\b",
+    "MEMIMPIN_PASUKAN": r"\bmemimpin\s+pasukan\b",
+    "PERANTARA": r"\bperantara\b",
+    "KEPALA_DELEGASI": r"\b(?:kepala|pemimpin)\s+delegasi\b",
+    "PENUNJUKAN_WAKIL_PRESIDEN": r"\bwakil\s+presiden\b",
+    "PENUNJUKAN_PRESIDEN": r"\bpresiden\b",
+}
+RELASI_LOC = {
+    "KELAHIRAN": POLA_KELAHIRAN,
+    "PENGASINGAN": r"\b(?:diasingkan|dikapalkan|dipindahkan)\b",
+    "BERLABUH": r"\bberlabuh\b",
+    "PEMBUKAAN": r"\bpersidangan\b.*\bdibuka\b",
+    "PENDARATAN": r"\bpendaratan\b",
+}
 
-    pola = rf"\b\d{{1,2}}\s+(?:{bulan})\s+\d{{4}}\b"
+def unik(hasil):
+    nilai = list(dict.fromkeys(x for x in hasil if x))
+    return nilai[0] if len(nilai) == 1 else None
 
-    hasil_tanggal = []
+def cocok_grup(pola, teks, flags=0):
+    m = re.search(pola, teks, flags)
+    return m.group(1).strip() if m else None
 
-    for cocok in re.finditer(pola, teks, flags=re.IGNORECASE):
-        hasil_tanggal.append({
-            "tanggal": cocok.group(),
-            "awal": cocok.start(),
-            "akhir": cocok.end()
-        })
+def entitas_ada(entitas, teks):
+    """Kesamaan frasa dengan batas token; mendukung singkatan huruf awal."""
+    if not entitas:
+        return False
+    nama = normalize_question(entitas)
+    normal = normalize_question(teks)
+    if re.search(rf"(?<!\w){re.escape(nama)}(?!\w)", normal):
+        return True
+    if re.fullmatch(r"[A-Z]{2,8}", entitas):
+        # cocokan singkatan dengan rangkaian kata yang menyebut nama
+        # minimal satu kata harus berkapital dalam teks asli
+        kata = re.findall(r"[A-Za-z]+", teks)
+        n = len(entitas)
+        for i in range(len(kata) - n + 1):
+            frasa = kata[i:i+n]
+            nama_formal = all(k[0].isupper() for k in frasa)
+            awalan_lembaga = frasa[0].casefold() in {"republik", "tentara", "partai", "panitia", "badan", "perserikatan"}
+            if (nama_formal or (awalan_lembaga and all(k[0].isupper() for k in frasa[1:]))) and "".join(k[0].upper() for k in frasa) == entitas:
+                return True
+    return False
 
-    return hasil_tanggal
-
-def ekstrak_tahun(teks):
-    """
-    Mengambil tahun empat digit dari teks.
-    Tahun yang menjadi bagian tanggal lengkap juga dapat ditemukan.
-    """
-    pola = r"\b(?:18|19|20)\d{2}\b"
-
-    return re.findall(pola, teks)
-
-def ekstrak_bulan_tahun(teks):
-    """
-    Mengekstraksi bulan dan tahun dari kalimat sumber.
-    Contoh: Desember 1948.
-    """
-
-    bulan = (
-        r"Januari|Februari|Maret|April|Mei|Juni|"
-        r"Juli|Agustus|September|Oktober|November|Desember"
-    )
-
-    pola = rf"\b(?:{bulan})\s+\d{{4}}\b"
-
-    hasil = re.findall(pola, teks, flags=re.IGNORECASE)
-
-    return list(dict.fromkeys(hasil))
-
-def ekstrak_tahun_pendirian(pertanyaan, teks):
-    """
-    Mengekstraksi tahun pendirian organisasi jika
-    nama organisasi dalam pertanyaan juga muncul pada kalimat.
-    """
-
-    pola_pertanyaan = (
-        r"pada\s+tahun\s+berapa\s+"
-        r".+?\s+mendirikan\s+(.+?)\s*\?$"
-    )
-
-    hasil = re.search(
-        pola_pertanyaan,
-        pertanyaan,
-        flags=re.IGNORECASE
-    )
-
-    if hasil is None:
-        return None
-
-    organisasi = hasil.group(1).strip()
-
-    # Nama organisasi harus muncul di kalimat sumber.
-    if organisasi.casefold() not in teks.casefold():
-        return None
-
-    # Kalimat harus membahas peristiwa pendirian.
-    if not re.search(
-        r"\b(?:mendirikan|didirikan)\b",
-        teks,
-        flags=re.IGNORECASE
-    ):
-        return None
-
-    tahun_ditemukan = ekstrak_tahun(teks)
-
-    # Hindari memilih tahun jika ada beberapa kemungkinan.
-    tahun_unik = list(dict.fromkeys(tahun_ditemukan))
-
-    if len(tahun_unik) == 1:
-        return tahun_unik[0]
-
-    return None
-
-def pilih_tanggal(pertanyaan, teks):
-    """
-    Memilih tanggal berdasarkan peristiwa dan konteks klausa dalam kalimat sumber.
-    """
-    if re.search(
-        r"\bpada\s+tahun\s+berapa\b",
-        pertanyaan,
-        flags=re.IGNORECASE
-    ):
-        return ekstrak_tahun_pendirian(pertanyaan, teks)
-
-    if re.search(
-        r"\bpada\s+bulan\s+apa\b",
-        pertanyaan,
-        flags=re.IGNORECASE
-    ):
-        bulan_tahun = ekstrak_bulan_tahun(teks)
-
-        if len(bulan_tahun) == 1:
-            return bulan_tahun[0]
-
-        return None
-
-    tanggal_ditemukan = ekstrak_tanggal(teks)
-
-    if not tanggal_ditemukan:
-        return None
-
-    kata_peristiwa = [
-        "lahir",
-        "meninggal",
-        "dilantik",
-        "dibentuk",
-        "didirikan",
-        "mendirikan",
-        "ditandatangani",
-        "dimulai",
-    ]
-
-    pertanyaan_kecil = pertanyaan.lower()
-
-    # Identifikasi peristiwa yang ditanyakan
-    peristiwa = None
-
-    for kata in kata_peristiwa:
-        if re.search(
-            r"\b" + re.escape(kata) + r"\b",
-            pertanyaan_kecil
-        ):
-            peristiwa = kata
-            break
-
-    # Jika peristiwa tidak dikenali, hanya izinkan jawaban jika ada satu tanggal.
-    if peristiwa is None:
-        if len(tanggal_ditemukan) == 1:
-            return tanggal_ditemukan[0]["tanggal"]
-        return None
-
-    # Pisahkan kalimat pada beberapa kata penghubung
-    klausa = re.split(
-        r"\b(?:dan|serta|kemudian)\b",
-        teks,
-        flags=re.IGNORECASE
-    )
-
-    kandidat_jawaban = []
-
-    for bagian in klausa:
-
-        # Periksa apakah klausa memuat peristiwa
-        if not re.search(
-            r"\b" + re.escape(peristiwa) + r"\b",
-            bagian,
-            flags=re.IGNORECASE
-        ):
-            continue
-
-        # Cari tanggal dalam klausa
-        tanggal_klausa = ekstrak_tanggal(bagian)
-
-        if len(tanggal_klausa) == 1:
-            kandidat_jawaban.append(
-                tanggal_klausa[0]["tanggal"]
-            )
-
-    # Kembalikan jawaban hanya jika tidak ambigu
-    jawaban_unik = list(dict.fromkeys(kandidat_jawaban))
-
-    if len(jawaban_unik) == 1:
-        return jawaban_unik[0]
-
-    return None
+def relasi_pertama(aturan, pertanyaan):
+    return next((label for label, pola in aturan.items()
+                 if re.search(pola, pertanyaan, re.I)), None)
 
 def identifikasi_peristiwa_per(pertanyaan):
+    return relasi_pertama(RELASI_PER, pertanyaan)
+
+def ambil_tokoh_pertanyaan_tanggal(pertanyaan):
+    return cocok_grup(r"^\s*(?:kapan(?:kah)?|(?:pada\s+)?tanggal\s+berapa|(?:pada\s+)?tahun\s+berapa)\s+(.+?)\s+(?:lahir|dilahirkan)\s*\??\s*$", pertanyaan, re.I)
+
+def analisis_pertanyaan(info):
+    """Ekstrak relasi dan argumen dari struktur pertanyaan yang didukung."""
+    q = info.get("original_question", "").strip().rstrip("?").strip()
+    tipe = info.get("answer_type")
+    a = {"tipe": tipe, "pertanyaan": q,
+         "normal": info.get("normalized_question") or normalize_question(q),
+         "relasi": None, "entitas": [], "topik": [], "konteks": [],
+         "ketelitian": "TANGGAL", "tokoh": None, "satuan": None}
+    def grup(pola):
+        return cocok_grup(pola, q, re.I)
+    def wajib(kunci, *nilai):
+        a[kunci].extend(v for v in nilai if v)
+
+    if tipe == "DATE":
+        r = a["relasi"] = relasi_pertama(RELASI_DATE, q)
+        if re.search(r"\btahun\s+berapa\b", q, re.I):
+            a["ketelitian"] = "TAHUN"
+        elif re.search(r"\bbulan\s+apa\b", q, re.I):
+            a["ketelitian"] = "BULAN"
+        if r == "KELAHIRAN":
+            a["tokoh"] = ambil_tokoh_pertanyaan_tanggal(q)
+        elif r == "PENDIRIAN":
+            wajib("entitas", grup(r"\bmendirikan\s+(.+)$") or grup(r"^(?:kapan(?:kah)?|(?:pada\s+)?(?:tanggal|tahun)\s+berapa)\s+(.+?)\s+didirikan\b"))
+            a["aktor"] = grup(r"^(?:kapan(?:kah)?|(?:pada\s+)?(?:tanggal|tahun)\s+berapa)\s+(.+?)\s+mendirikan\b")
+        elif r == "PEMBAWAAN":
+            nama = grup(r"^(?:kapan(?:kah)?|(?:pada\s+)?tanggal\s+berapa)\s+(.+?)\s+dibawa\b")
+            wajib("entitas", *(re.split(r"\s+dan\s+", nama, flags=re.I) if nama else []), grup(r"\bdibawa\s+ke\s+(.+)$"))
+        elif r == "PELANTIKAN":
+            wajib("entitas", grup(r"^(?:kapan(?:kah)?|(?:pada\s+)?tanggal\s+berapa)\s+(.+?)\s+dilantik\b"), grup(r"\bsebagai\s+(.+?)(?:\s+pada\s+|$)"), grup(r"\bpada\s+(Kabinet\s+.+)$"))
+        elif r == "PELUNCURAN":
+            wajib("entitas", grup(r"\bsebutan\s+(.+?)\s+dilancarkan\b") or grup(r"^(?:kapan\s+)?(.+?)\s+dilancarkan\b"))
+        elif r == "KEMERDEKAAN":
+            wajib("entitas", grup(r"^kapan(?:kah)?\s+(.+?)\s+merdeka\b") or grup(r"\bkemerdekaan\s+(.+)$"))
+        elif r:
+            wajib("entitas", grup(r"^(?:kapan(?:kah)?|(?:pada\s+)?(?:tanggal|tahun)\s+berapa)\s+(.+?)\s+(?:meninggal|wafat|dibentuk|ditandatangani|dimulai)\b"))
+
+    elif tipe == "PER":
+        r = a["relasi"] = identifikasi_peristiwa_per(q)
+        if r == "PEMBERIAN_JULUKAN":
+            wajib("entitas", grup(r'\bjulukan\s+["“]([^"”]+)["”]') or grup(r"\bjulukan\s+(.+?)(?:\s+kepada\s+|$)"))
+        elif r == "KOMANDAN_TEWAS":
+            wajib("entitas", grup(r"\bkomandan\s+pasukan\s+(.+?)\s+yang\s+tewas\b"))
+            wajib("topik", grup(r"\bdi\s+(.+)$"))
+            tanggal = grup(r"\bpada\s+(\d{1,2}\s+\w+\s+\d{4})\b")
+            if tanggal:
+                hari_bulan, tahun = tanggal.rsplit(" ", 1)
+                wajib("entitas", hari_bulan)
+                wajib("konteks", tahun)
+        elif r == "PEMILIHAN_PANGLIMA":
+            wajib("entitas", grup(r"\bpanglima\s+(.+)$"))
+        elif r == "PELEDAKAN":
+            wajib("konteks", grup(r"\bmeledakkan\s+(.+?)(?:\s+di\s+|\s+dengan\s+|$)"), grup(r"\bdi\s+(.+?)(?:\s+dengan\s+|$)"))
+        elif r == "MEMIMPIN_PASUKAN":
+            wajib("entitas", grup(r"\bdari\s+(.+?)(?:\s+hingga\s+|\s+sampai\s+|\s+dalam\s+|$)"), grup(r"\b(?:hingga|sampai)\s+ke\s+(.+?)(?:\s+dalam\s+|$)"))
+            wajib("topik", grup(r"\bdalam\s+(.+)$"))
+        elif r in {"KEPALA_DELEGASI", "PERANTARA"}:
+            if r == "KEPALA_DELEGASI":
+                wajib("entitas", grup(r"\bdelegasi\s+(.+?)(?:\s+dalam\s+|\s+pada\s+|$)"))
+            wajib("topik", grup(r"\b(?:perundingan|perjanjian)\s+(.+)$"))
+            if r == "PERANTARA" and re.search(r"\btahap awal\b", q, re.I):
+                wajib("entitas", "tahap awal")
+        elif r in {"PENUNJUKAN_PRESIDEN", "PENUNJUKAN_WAKIL_PRESIDEN"}:
+            wajib("konteks", grup(r"\bditunjuk\s+(.+?)\s+sebagai\b"))
+            wajib("entitas", grup(r"\bpresiden(?:\s+pertama)?\s+(.+)$"))
+            a["pertama"] = bool(re.search(r"\bpertama\b", q, re.I))
+
+    elif tipe == "LOC":
+        r = a["relasi"] = relasi_pertama(RELASI_LOC, q)
+        if r == "KELAHIRAN":
+            a["tokoh"] = ambil_tokoh_pertanyaan(q)
+        elif r == "PENGASINGAN":
+            a["tokoh"] = grup(r"^(?:ke|di)\s+(?:\w+\s+)?mana(?:kah)?\s+(.+?)\s+(?:diasingkan|dikapalkan|dipindahkan)\b")
+            wajib("entitas", a["tokoh"], grup(r"\btahun\s+(\d{4})\b"))
+        elif r == "BERLABUH":
+            wajib("entitas", grup(r"\bkapal\s+(.+?)\s+berlabuh\b"))
+        elif r == "PEMBUKAAN":
+            wajib("entitas", grup(r"\bpersidangan\s+(?:pertama\s+)?(.+?)\s+dibuka\b"))
+        elif r == "PENDARATAN":
+            a["operasi"] = grup(r"\boperasi\s+(.+)$")
+            wajib("entitas", a["operasi"])
+            wajib("konteks", grup(r"\bpasukan\s+(.+?)\s+melakukan\b"))
+
+    elif tipe == "NUM":
+        a["satuan"] = next((s for s in SATUAN if re.search(rf"\b{re.escape(s)}\b", q, re.I)), None)
+        if a["satuan"]:
+            a["relasi"] = "JUMLAH"
+            wajib("entitas", grup(rf"\b{re.escape(a['satuan'])}\s+(.+)$"))
+
+    elif tipe == "MISC":
+        if re.search(r"\bsumber daya alam\b", q, re.I):
+            a["relasi"] = "SUMBER_DAYA"
+            wajib("entitas", grup(r"\bsasaran utama\s+(.+?)(?:\s+dalam\s+|$)"), grup(r"\bpendudukannya\s+di\s+(.+)$"))
+        elif re.search(r"\bnama kapal\b", q, re.I):
+            a["relasi"] = "KAPAL_PENYERAHAN"
+            wajib("entitas", grup(r"\btempat\s+(.+?)(?:\s+secara resmi)?\s+menyerah\b"), grup(r"\bmenyerah\s+kepada\s+(.+)$"))
+    return a
+
+def validasi_relevansi(a, teks, konteks=None):
+    """Validasi argumen yang dikenali. Topik hanya untuk pertanyaan bertopik,
+    jawaban dan relasi tetap harus muncul di kalimat bukti, bukan di judul.
     """
-    Mengidentifikasi jenis peristiwa untuk pertanyaan PER.
-    """
+    konteks = konteks or {}
+    sekitar = " ".join([teks, konteks.get("sebelumnya", "")])
+    topik = " ".join([sekitar, konteks.get("judul", "")])
+    for entitas in a["entitas"]:
+        if entitas_ada(entitas, teks):
+            continue
+        if a["tipe"] == "NUM" and entitas.lower().startswith("republik "):
+            if entitas_ada(entitas[9:], teks) and entitas_ada(entitas, sekitar):
+                continue
+        return False
+    return (all(entitas_ada(x, topik) for x in a["topik"])
+            and all(entitas_ada(x, sekitar) for x in a["konteks"]))
 
-    pertanyaan = pertanyaan.lower()
+# DATE: ekstraksi waktu dipisahkan dari keputusan relevansi
+def ekstrak_tanggal(teks):
+    return [{"tanggal": m.group(), "awal": m.start(), "akhir": m.end()}
+            for m in re.finditer(rf"\b\d{{1,2}}\s+(?:{BULAN})\s+\d{{4}}\b", teks, re.I)]
 
-    if "julukan" in pertanyaan:
-        return "PEMBERIAN_JULUKAN"
+def ekstrak_tahun(teks):
+    return re.findall(r"\b(?:18|19|20)\d{2}\b", teks)
 
-    if "komandan" in pertanyaan and "tewas" in pertanyaan:
-        return "KOMANDAN_TEWAS"
+def ekstrak_bulan_tahun(teks):
+    return list(dict.fromkeys(re.findall(rf"\b(?:{BULAN})\s+\d{{4}}\b", teks, re.I)))
 
-    if "terpilih" in pertanyaan and "panglima" in pertanyaan:
-        return "PEMILIHAN_PANGLIMA"
+def _waktu(a, teks, konteks=None):
+    r = a["relasi"]
+    if not r or (r == "KELAHIRAN" and not a["tokoh"]) or (r != "KELAHIRAN" and not a["entitas"]):
+        return None
+    if r == "PENDIRIAN" and a.get("aktor"):
+        aktor = a["aktor"]
+        judul = (konteks or {}).get("judul", "")
+        if not entitas_ada(aktor, teks) and not (entitas_ada(aktor, judul) and entitas_ada(aktor.split()[-1], teks)):
+            return None
+    jawaban = []
+    for klausa in re.split(PENGHUBUNG, teks, flags=re.I):
+        if not re.search(RELASI_DATE[r], klausa, re.I):
+            continue
+        if r == "KEMERDEKAAN":
+            if re.search(r"\b(?:hut|peringatan|pidato|ulang tahun)\b", klausa, re.I):
+                continue
+            if not re.search(r"\b(?:memproklamasikan\s+kemerdekaan|proklamasi\s+kemerdekaan.*(?:dibacakan|dilaksanakan)|(?:merdeka|kemerdekaan)\s+pada)\b", klausa, re.I):
+                continue
+        if not validasi_relevansi(a, klausa, konteks):
+            continue
+        if r == "PENDIRIAN":
+            # Organisasi merupakan objek mendirikan atau subjek didirikan.
+            n = normalize_question(klausa)
+            organisasi = re.escape(normalize_question(a["entitas"][0]))
+            pola = rf"(?:\bmendirikan\s+(?:sebuah\s+)?{organisasi}(?!\w)|(?<!\w){organisasi}\s+(?:resmi\s+)?didirikan\b)"
+            if not re.search(pola, n):
+                continue
+        if a["ketelitian"] == "TAHUN":
+            pilihan = ekstrak_tahun(klausa)
+        elif a["ketelitian"] == "BULAN":
+            pilihan = ekstrak_bulan_tahun(klausa)
+        else:
+            pilihan = [x["tanggal"] for x in ekstrak_tanggal(klausa)]
+        if unik(pilihan):
+            jawaban.append(unik(pilihan))
+    return unik(jawaban)
 
-    if "meledakkan" in pertanyaan:
-        return "PELEDAKAN"
+def pilih_tanggal(pertanyaan, teks):
+    a = analisis_pertanyaan({"original_question": pertanyaan, "answer_type": "DATE"})
+    if a["relasi"] == "KELAHIRAN" and (not a["tokoh"] or validasi_tokoh(a["tokoh"], teks) != "COCOK"):
+        return None
+    return _waktu(a, teks)
 
-    if "memimpin" in pertanyaan and "pasukan" in pertanyaan:
-        return "MEMIMPIN_PASUKAN"
+def ekstrak_tahun_pendirian(pertanyaan, teks):
+    """Kompatibilitas fungsi lama."""
+    a = analisis_pertanyaan({"original_question": pertanyaan, "answer_type": "DATE"})
+    return _waktu(a, teks) if a["relasi"] == "PENDIRIAN" else None
 
-    if "perantara" in pertanyaan:
-        return "PERANTARA"
-
-    if "kepala delegasi" in pertanyaan:
-        return "KEPALA_DELEGASI"
-
-    if "ditunjuk" in pertanyaan and "wakil presiden" in pertanyaan:
-        return "PENUNJUKAN_WAKIL_PRESIDEN"
-
-    return None
+# PER:
+# setiap pola mengikat nama ke peran/tindakan, kata kunci case-insensitive.
+POLA_PER = {
+    "PEMBERIAN_JULUKAN": [
+        rf"\b({NAMA})\s+(?i:memberikan\s+julukan)\b",
+        rf"(?i:\b(?:diberi\s+julukan|dijuluki)\b[^.!?\n]{{0,120}}?\boleh\s+)({NAMA})",
+        rf"(?i:\bjulukan\s+[^.!?\n]{{1,100}}?\s+diberikan\s+oleh\s+)({NAMA})",
+    ],
+    "KOMANDAN_TEWAS": [
+        rf"(?i:\bkomandan\s+pasukan\s+[^,]+,\s+)({INISIAL}|{NAMA})\s*,?\s*(?i:tewas)\b",
+        rf"(?i:\bkomandan\s+pasukan\s+[^,.!?]+?\s+yang\s+tewas\s+adalah\s+)({INISIAL}|{NAMA})",
+    ],
+    "PEMILIHAN_PANGLIMA": [
+        rf"(?i:\bbernama\s+)({NAMA})\s+(?i:terpilih|dipilih)\s+(?i:menjadi|sebagai)\s+(?i:panglima)\b",
+        rf"\b({NAMA})\s+(?i:terpilih|dipilih)\s+(?i:menjadi|sebagai)\s+(?i:panglima)\b",
+    ],
+    "PELEDAKAN": [rf"\b({NAMA})\s+(?i:(?:berhasil\s+)?meledakkan)\b"],
+    "MEMIMPIN_PASUKAN": [rf"\b({NAMA})\s+(?i:(?:langsung\s+)?memimpin\s+pasukan)\b"],
+    "PERANTARA": [rf",\s*({NAMA}),\s*(?i:bertindak\s+sebagai\s+perantara)\b"],
+    "KEPALA_DELEGASI": [rf"(?i:\b(?:kepala|pemimpin)\s+delegasi\s+[^,]+,\s*)({NAMA})\s*,"],
+}
+POLA_PASANGAN = (rf"(?i:\bmenunjuk\s+)({NAMA})\s+(?i:dan)\s+({NAMA})"
+                 r"\s+(?i:masing-masing\s+sebagai\s+presiden\s+dan\s+wakil\s+presiden)\b")
 
 def ekstrak_pelaku(teks, peristiwa=None):
-    """
-    Mengekstraksi kandidat nama pelaku dari kalimat aktif atau pasif sederhana.
-    """
-
-    if peristiwa == "PEMILIHAN_PANGLIMA":
-
-        pola = (
-            r"\bbernama\s+"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s+terpilih\s+menjadi\s+panglima\b"
-        )
-
-        hasil = re.search(pola, teks)
-
+    if peristiwa is None:
+        peristiwa = identifikasi_peristiwa_per(teks)
+    if peristiwa in {"PENUNJUKAN_PRESIDEN", "PENUNJUKAN_WAKIL_PRESIDEN"}:
+        m = re.search(POLA_PASANGAN, teks)
+        return m.group(2 if peristiwa.endswith("WAKIL_PRESIDEN") else 1) if m else None
+    for pola in POLA_PER.get(peristiwa, []):
+        hasil = cocok_grup(pola, teks)
         if hasil:
-            return hasil.group(1)
-
-        return None
-
-    if peristiwa == "PELEDAKAN":
-
-        pola = (
-            r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s+berhasil\s+meledakkan\b"
-        )
-
-        hasil = re.search(pola, teks)
-
-        if hasil:
-            return hasil.group(1)
-
-        return None
-
-    if peristiwa == "MEMIMPIN_PASUKAN":
-
-        pola = (
-            r"\b(Letkol\s+[A-Z][a-z]+)"
-            r"\s+(?:langsung\s+)?memimpin\s+pasukan\b"
-        )
-
-        hasil = re.search(pola, teks)
-
-        if hasil:
-            return hasil.group(1)
-
-        return None
-
-    if peristiwa == "PERANTARA":
-
-        pola = (
-            r",\s*"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r",\s*bertindak\s+sebagai\s+perantara\b"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            return hasil.group(1)
-
-        return None
-
-    if peristiwa == "KEPALA_DELEGASI":
-
-        pola = (
-            r"\bkepala\s+delegasi\s+republik\s+indonesia,\s*"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s*,"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            return hasil.group(1)
-
-        return None
-
-    if peristiwa == "PENUNJUKAN_WAKIL_PRESIDEN":
-
-        pola = (
-            r"\bmenunjuk\s+"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s+dan\s+"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s+masing-masing\s+sebagai\s+"
-            r"presiden\s+dan\s+wakil\s+presiden\b"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            return hasil.group(2)
-
-        return None
-
-    if peristiwa == "PEMBERIAN_JULUKAN":
-
-        pola_julukan = [
-            (
-                r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)"
-                r"\s+memberikan\s+julukan\b"
-            ),
-
-            # Diberi julukan ... oleh Nama
-            (
-                r"\bdiberi\s+julukan\b"
-                r"[^.!?\n]{0,120}?"
-                r"\boleh\s+"
-                r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            ),
-
-            # Dijuluki ... oleh Nama
-            (
-                r"\bdijuluki\b"
-                r"[^.!?\n]{0,120}?"
-                r"\boleh\s+"
-                r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            )
-        ]
-
-        for pola in pola_julukan:
-            hasil = re.search(pola, teks)
-
-            if hasil:
-                return hasil.group(1)
-
-        return None
-
-    elif peristiwa == "KOMANDAN_TEWAS":
-
-        nama_berinisial = (
-            r"((?:[A-Z][a-z]+\s+)?"
-            r"(?:[A-Z]\.\s*)+"
-            r"[A-Z][a-z]+)"
-        )
-
-        pola_komandan = [
-            # Jabatan, nama, lalu tewas
-            (
-                r"(?i:\bkomandan\s+pasukan\s+[^,]+,\s+)"
-                + nama_berinisial
-                + r"\s*,?\s*(?i:tewas)\b"
-            ),
-
-            # Jabatan yang tewas adalah nama
-            (
-                r"(?i:\bkomandan\s+pasukan\s+"
-                r"[^,.!?]+?\s+yang\s+tewas\s+adalah\s+)"
-                + nama_berinisial
-            )
-        ]
-
-        for pola in pola_komandan:
-            hasil = re.search(pola, teks)
-
-            if hasil:
-                return hasil.group(1)
-
-        return None
-
-    pola_aktif = (
-        r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)"
-        r"\s+memberikan\b"
-    )
-
-    pola_pasif = (
-        r"\bdiberikan\s+oleh\s+"
-        r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b"
-    )
-
-    pola_pasif_julukan = (
-        r"\bdiberi\s+julukan\s+"
-        r"[\"“]?[^\n\"”]{1,100}[\"”]?\s+oleh\s+"
-        r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b"
-    )
-
-    hasil = re.search(pola_aktif, teks)
-
-    if hasil:
-        return hasil.group(1)
-
-    hasil = re.search(pola_pasif, teks, flags=re.IGNORECASE)
-
-    if hasil:
-        return hasil.group(1)
-
-    hasil = re.search(pola_pasif_julukan, teks, flags=re.IGNORECASE)
-
-    if hasil:
-        return hasil.group(1)
-
-    # Pola nama tokoh yang menggunakan gelar dan inisial
-    nama_berinisial = (
-        r"((?:[A-Z][a-z]+\s+)?"
-        r"(?:[A-Z]\.\s*)+"
-        r"[A-Z][a-z]+)"
-    )
-
-    # Jabatan, nama, kemudian peristiwa tewas
-    pola_jabatan_tewas = (
-        r"(?i:\bkomandan\s+pasukan\s+[^,]+,\s+)"
-        + nama_berinisial
-        + r"\s*,?\s*(?i:tewas)\b"
-    )
-
-    # Nama langsung diikuti peristiwa tewas
-    pola_nama_tewas = (
-        r"\b" + nama_berinisial + r"\s+(?i:tewas)\b"
-    )
-
-    # Jabatan yang tewas adalah nama
-    pola_jabatan_adalah = (
-        r"(?i:\bkomandan\s+pasukan\s+"
-        r".+?\s+yang\s+tewas\s+adalah\s+)"
-        + nama_berinisial
-    )
-
-    for pola in [
-        pola_jabatan_tewas,
-        pola_nama_tewas,
-        pola_jabatan_adalah
-    ]:
-        hasil = re.search(pola, teks)
-
-        if hasil:
-            return hasil.group(1)
-
+            return hasil
     return None
 
+def _pelaku(a, teks, konteks):
+    r = a["relasi"]
+    if r == "KEPALA_DELEGASI" and a["entitas"]:
+        m = re.search(rf"(?i:\b(?:kepala|pemimpin)\s+delegasi\s+)([^,]+),\s*({NAMA})\s*,", teks)
+        if not m or not all(entitas_ada(x, m.group(1)) for x in a["entitas"]):
+            return None
+    if r and r.startswith("PENUNJUKAN_") and a.get("pertama") and not re.search(r"\bpertama\b", teks, re.I):
+        return None
+    return ekstrak_pelaku(teks, r) if r and validasi_relevansi(a, teks, konteks) else None
+
+# LOC:
+# nama objek diperoleh dari pertanyaan, bukan nilai tetap.
 def ekstrak_lokasi(teks):
-    """
-    Mengekstraksi kandidat lokasi kelahiran. Pencarian dibatasi agar tidak melewati beberapa penghubung peristiwa.
-    """
+    bagian = re.split(PENGHUBUNG, teks, maxsplit=1, flags=re.I)[0]
+    return cocok_grup(rf"(?i:\b(?:lahir|dilahirkan)\b).{{0,60}}?(?i:\bdi\s+)({LOKASI})\b", bagian)
 
-    # Pisahkan teks ketika ada peralihan peristiwa.
-    bagian = re.split(
-        r"\b(?:dan kemudian|kemudian|lalu|setelah itu)\b",
-        teks,
-        maxsplit=1,
-        flags=re.IGNORECASE
-    )[0]
-
-    pola = (
-        r"\b(?:lahir|dilahirkan)\b"
-        r".{0,60}?"
-        r"\bdi\s+"
-        r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b"
-    )
-
-    hasil = re.search(pola, bagian)
-
-    if hasil:
-        return hasil.group(1)
-
+def _lokasi(a, teks, konteks):
+    r = a["relasi"]
+    if r == "KELAHIRAN":
+        return ekstrak_lokasi(teks) if a["tokoh"] else None
+    if not a["entitas"] or not validasi_relevansi(a, teks, konteks):
+        return None
+    if r == "PENGASINGAN" and a["tokoh"]:
+        pola = rf"({NAMA})\s+(?i:diasingkan|dikapalkan|dipindahkan)\b[^;.!?]{{0,180}}?(?i:\bke\s+(?:kota\s+)?(?:terpencil\s+)?)({LOKASI})"
+        m = re.search(pola, teks)
+        return m.group(2) if m and entitas_ada(a["tokoh"], m.group(1)) else None
+    if r == "BERLABUH":
+        # Pola lama dipertahankan untuk klausa relatif tentang kapal.
+        m = re.search(rf"(?i:\bberlabuh\s+di\s+)({LOKASI})", teks)
+        if not m:
+            return None
+        nama = re.escape(normalize_question(a["entitas"][0]))
+        sebelum = normalize_question(teks[:m.start()])
+        # Nama kapal harus terkait dengan predikat, bukan hanya disebut
+        # jauh sebelumnya (contoh: kapal lain yang berlabuh).
+        pola_subjek = rf"(?<!\w){nama}(?!\w)(?:\s*,\s*kapal[^.!?]{{0,100}}?\bsaat)?\s*$"
+        return m.group(1) if re.search(pola_subjek, sebelum) else None
+    if r == "PEMBUKAAN":
+        lokasi = cocok_grup(rf"(?i:\bpembukaan\s+masa\s+persidangan\b[^.?!]{{0,100}}?\bdi\s+)((?i:gedung)\s+{NAMA}\s+(?i:di)\s+{NAMA})", teks)
+        return lokasi[0].upper() + lokasi[1:] if lokasi else None
+    if r == "PENDARATAN" and a.get("operasi") and re.search(r"\bpendaratan\b", teks, re.I):
+        return cocok_grup(rf"(?i:\b{re.escape(a['operasi'])}\s+di\s+)({LOKASI})", teks)
     return None
 
 def ekstrak_lokasi_peristiwa(pertanyaan, teks):
-    """
-    Mengekstraksi lokasi berdasarkan hubungan peristiwa yang ditanyakan.
-    """
-    pertanyaan_kecil = pertanyaan.casefold()
-
-    # Lokasi pengasingan ke suatu kota
-    if "diasingkan" in pertanyaan_kecil:
-
-        # Pastikan tokoh yang ditanyakan muncul dalam kalimat.
-        if "soekarno" not in teks.casefold():
-            return None
-
-        pola = (
-            r"\bke\s+kota\s+(?:terpencil\s+)?"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s*(?:,|\.|$)"
-        )
-
-        hasil = re.search(pola, teks)
-
-        if hasil:
-            return hasil.group(1)
-
+    a = analisis_pertanyaan({"original_question": pertanyaan, "answer_type": "LOC"})
+    if a["relasi"] == "KELAHIRAN" and (not a["tokoh"] or validasi_tokoh(a["tokoh"], teks) != "COCOK"):
         return None
+    return _lokasi(a, teks, {})
 
-    # Lokasi kapal berlabuh
-    if "berlabuh" in pertanyaan_kecil:
-
-        # Pastikan kapal yang ditanyakan muncul dalam kalimat.
-        if "uss renville" not in teks.casefold():
-            return None
-
-        pola = (
-            r"\bberlabuh\s+di\s+"
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-            r"\s*(?:,|\.|$)"
-        )
-
-        hasil = re.search(pola, teks)
-
-        if hasil:
-            return hasil.group(1)
-
+# NUM dan MISC
+def _angka(a, teks, konteks):
+    satuan = a["satuan"]
+    if not satuan or not validasi_relevansi(a, teks, konteks):
         return None
-
-    if "persidangan" in pertanyaan_kecil and "dibuka" in pertanyaan_kecil:
-
-        pola = (
-            r"\bpembukaan\s+masa\s+persidangan\b"
-            r"[^.]{0,100}?"
-            r"\bdi\s+"
-            r"(gedung\s+[A-Z][A-Za-z]+"
-            r"(?:\s+[A-Z][A-Za-z]+)*"
-            r"\s+di\s+[A-Z][a-z]+)"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            lokasi = hasil.group(1).strip()
-            return lokasi[0].upper() + lokasi[1:]
-
-        return None
-
-    if "pendaratan" in pertanyaan_kecil and "produk utara" in pertanyaan_kecil:
-
-        pola = (
-            r"\bProduk\s+Utara\s+di\s+"
-            r"([A-Z][A-Za-z]+\s+[A-Z][A-Za-z]+,\s*"
-            r"[A-Z][A-Za-z]+)"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            return hasil.group(1).strip()
-
-        return None
-
-    return None
+    pola = rf"({ANGKA})\s+{re.escape(satuan)}\b"
+    hasil = []
+    for klausa in re.split(PENGHUBUNG, teks, flags=re.I):
+        if not validasi_relevansi(a, klausa, konteks):
+            continue
+        for m in re.finditer(pola, klausa, re.I):
+            if a["entitas"]:
+                n = normalize_question(klausa[:m.start()])
+                entitas = a["entitas"][0]
+                nama = normalize_question(entitas)
+                if nama.startswith("republik ") and not entitas_ada(entitas, klausa):
+                    nama = nama[9:]
+                pengikat = r"(?:terdiri\s+(?:dari|atas)|memiliki|mempunyai|mencakup|berjumlah|sebanyak)"
+                pola_subjek = (rf"(?<!\w){re.escape(nama)}(?:\s+(?:ini|itu|tersebut))?\s+"
+                               rf"(?:dibentuk\s+[^,;.]{{1,100}}?\s+yang\s+)?{pengikat}\s*$")
+                # Pola NUM yang tidak terhubung dengan entitas ditolak
+                if not re.search(pola_subjek, n):
+                    continue
+            hasil.append(m.group() if satuan == "negara bagian" else m.group(1))
+    return unik(hasil)
 
 def ekstrak_angka(pertanyaan, teks):
-    """
-    Mengekstraksi jumlah numerik berdasarkan kata satuan yang muncul dalam pertanyaan.
-    """
+    return _angka(analisis_pertanyaan({"original_question": pertanyaan, "answer_type": "NUM"}), teks, {})
 
-    satuan = [
-        "negara bagian",
-        "anggota",
-        "orang",
-        "korban",
-        "pasukan",
-        "hari",
-        "bulan",
-        "tahun",
-    ]
-
-    pertanyaan_kecil = pertanyaan.lower()
-
-    for kata in satuan:
-        if re.search(r"\b" + re.escape(kata) + r"\b", pertanyaan_kecil):
-
-            pola = rf"\b(\d+)\s+{re.escape(kata)}\b"
-
-            hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-            if hasil:
-                if kata == "negara bagian":
-                    return hasil.group(0)
-
-                return hasil.group(1)
-
+def _misc(a, teks, konteks):
+    if not a["entitas"] or not validasi_relevansi(a, teks, konteks):
+        return None
+    if a["relasi"] == "SUMBER_DAYA":
+        hasil = cocok_grup(r"\b(?:menguasai\s+)?sumber-sumber\s+alam,\s*terutama\s+([a-z]+(?:\s+[a-z]+)*)\s*,", teks, re.I)
+        return hasil[0].upper() + hasil[1:] if hasil else None
+    if a["relasi"] == "KAPAL_PENYERAHAN":
+        return cocok_grup(rf"(?i:\bmenyerah\s+kepada\s+.+?\s+di\s+kapal\s+)({NAMA})", teks)
     return None
 
 def ekstrak_misc(pertanyaan, teks):
-    """
-    Mengekstraksi jawaban objek faktual untuk pertanyaan sumber daya alam atau nama kapal.
-    """
-    pertanyaan_kecil = pertanyaan.casefold()
+    return _misc(analisis_pertanyaan({"original_question": pertanyaan, "answer_type": "MISC"}), teks, {})
 
-    # Sumber daya alam yang menjadi sasaran utama
-    if "sumber daya alam" in pertanyaan_kecil:
+# orkestrasi
+# indeks konteks satu kali, tanpa mengubah skor atau urutan BM25.
+def ambil_konteks(id_kalimat, indeks, blok):
+    record = indeks.get(id_kalimat, {})
+    daftar = blok.get(record.get("id_blok"), [])
+    posisi = next((i for i, x in enumerate(daftar) if x["id_kalimat"] == id_kalimat), 0)
+    return {"judul": record.get("judul_dokumen", ""),
+            "sebelumnya": " ".join(x["teks_asli"] for x in daftar[max(0, posisi - 3):posisi]),
+            "blok": daftar}
 
-        if not re.search(
-            r"\b(?:jepang|hindia belanda)\b",
-            teks,
-            flags=re.IGNORECASE
-        ):
-            return None
-
-        pola = (
-            r"\bsumber-sumber\s+alam,\s*terutama\s+"
-            r"([a-z]+(?:\s+[a-z]+)*)"
-            r"\s*,"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            jawaban = hasil.group(1).strip()
-            return jawaban[0].upper() + jawaban[1:]
-
+def ambil_jawaban(info_pertanyaan, kandidat, kalimat_korpus=None):
+    a = analisis_pertanyaan(info_pertanyaan)
+    if not a["relasi"]:
         return None
-
-    # Nama kapal tempat penyerahan Jepang
-    if "nama kapal" in pertanyaan_kecil:
-
-        if not re.search(
-            r"\bjepang\b.*\bmenyerah\b",
-            teks,
-            flags=re.IGNORECASE
-        ):
-            return None
-
-        pola = (
-            r"\bmenyerah\s+kepada\s+Sekutu\s+"
-            r"di\s+kapal\s+"
-            r"(USS\s+[A-Z][A-Za-z]+)"
-        )
-
-        hasil = re.search(pola, teks, flags=re.IGNORECASE)
-
-        if hasil:
-            return hasil.group(1)
-
+    indeks, blok = {}, defaultdict(list)
+    for item in kalimat_korpus or []:
+        indeks[item["id_kalimat"]] = item
+        blok[item.get("id_blok", item["id_kalimat"].rsplit("-K", 1)[0])].append(item)
+    ekstraktor = {"DATE": _waktu, "PER": _pelaku, "LOC": _lokasi,
+                 "NUM": _angka, "MISC": _misc}.get(a["tipe"])
+    if not ekstraktor:
         return None
-
-    return None
-
-def ambil_tokoh_pertanyaan_tanggal(pertanyaan):
-    """
-    Mengambil nama tokoh dari pertanyaan:
-    'Kapan [nama tokoh] lahir?'
-    """
-
-    pola = r"^\s*kapan\s+(.+?)\s+lahir\s*\?$"
-
-    hasil = re.search(pola, pertanyaan, flags=re.IGNORECASE)
-
-    if hasil:
-        return hasil.group(1).strip()
-
-    return None
-
-def ambil_jawaban(
-    info_pertanyaan,
-    kandidat,
-    kalimat_korpus=None
-):
-    """
-    Mengambil jawaban dari kandidat hasil passage retrieval.
-
-    Parameter:
-        info_pertanyaan: dictionary hasil Question Processing
-        kandidat: list hasil Passage Retrieval
-
-    Return:
-        dictionary berisi jawaban dan id_kalimat,
-        atau None jika belum ditemukan.
-    """
-
-    tipe_jawaban = info_pertanyaan.get("answer_type")
-    pertanyaan = info_pertanyaan.get("original_question", "")
-
     for item in kandidat:
-        teks = item.get("teks_asli", "")
-        id_kalimat = item.get("id_kalimat")
-
-        if tipe_jawaban == "DATE":
-
-            nama_tokoh = ambil_tokoh_pertanyaan_tanggal(pertanyaan)
-
-            if nama_tokoh is not None:
-
-                status_tokoh = validasi_tokoh(nama_tokoh, teks)
-
-                if status_tokoh == "TIDAK_COCOK":
-                    continue
-
-                elif status_tokoh == "PERLU_KONTEKS":
-
-                    if kalimat_korpus is None:
-                        continue
-
-                    # Cari kalimat dalam blok sumber yang sama.
-                    blok_target = id_kalimat.rsplit("-K", 1)[0]
-
-                    kalimat_blok = [
-                        item
-                        for item in kalimat_korpus
-                        if item["id_blok"] == blok_target
-                    ]
-
-                    id_pendukung = periksa_konteks_tokoh(
-                        nama_tokoh,
-                        id_kalimat,
-                        kalimat_blok
-                    )
-
-                    if id_pendukung is None:
-                        continue
-
-                    kalimat_pendukung = next(
-                        (
-                            item["teks_asli"]
-                            for item in kalimat_blok
-                            if item["id_kalimat"] == id_pendukung
-                        ),
-                        None
-                    )
-
-                    if kalimat_pendukung is None:
-                        continue
-
-                    if validasi_tokoh(
-                        nama_tokoh,
-                        kalimat_pendukung
-                    ) != "COCOK":
-                        continue
-
-            jawaban = pilih_tanggal(pertanyaan, teks)
-
-        elif tipe_jawaban == "PER":
-
-            peristiwa = identifikasi_peristiwa_per(pertanyaan)
-
-            if peristiwa is None:
+        teks, identitas = item.get("teks_asli", ""), item.get("id_kalimat")
+        if not teks or not identitas:
+            continue
+        konteks = ambil_konteks(identitas, indeks, blok)
+        if a["relasi"] == "KELAHIRAN":
+            if not a["tokoh"] or not re.search(POLA_KELAHIRAN, teks, re.I):
                 continue
-
-            jawaban = ekstrak_pelaku(teks, peristiwa)
-
-        elif tipe_jawaban == "LOC":
-
-            # Pertanyaan lokasi kelahiran
-            nama_tokoh = ambil_tokoh_pertanyaan(pertanyaan)
-
-            if nama_tokoh is not None:
-
-                status_subjek = cek_subjek_kelahiran(
-                    nama_tokoh,
-                    teks
-                )
-
-                if status_subjek != "COCOK":
+            status = validasi_tokoh(a["tokoh"], teks)
+            if status == "TIDAK_COCOK":
+                continue
+            if status == "PERLU_KONTEKS":
+                if not re.search(r"\b(?:ia|dia|beliau)\s+(?:lahir|dilahirkan)\b", teks, re.I):
                     continue
-
-                jawaban = ekstrak_lokasi(teks)
-
-            # Pertanyaan lokasi peristiwa lain
-            else:
-                jawaban = ekstrak_lokasi_peristiwa(
-                    pertanyaan,
-                    teks
-                )
-
-        elif tipe_jawaban == "NUM":
-            jawaban = ekstrak_angka(pertanyaan, teks)
-
-        elif tipe_jawaban == "MISC":
-            jawaban = ekstrak_misc(pertanyaan, teks)
-
-        else:
-            jawaban = None
-
-        if jawaban is not None:
-            return {
-                "jawaban": jawaban,
-                "id_kalimat": id_kalimat
-            }
-
+                if not periksa_konteks_tokoh(a["tokoh"], identitas, konteks["blok"]):
+                    continue
+        jawaban = ekstraktor(a, teks, konteks)
+        if jawaban:
+            return {"jawaban": jawaban, "id_kalimat": identitas}
     return None

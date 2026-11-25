@@ -1,104 +1,50 @@
+"""Validasi identitas dan konteks kelahiran berbasis pola
+"""
 import re
+from question_processing import normalize_question
+
+POLA_NAMA = r"(?:[A-Z][a-z]+|[A-Z]{2,}|[A-Z][a-z]*\.)(?:\s+(?:[A-Z][a-z]+|[A-Z]{2,}|[A-Z][a-z]*\.))*"
+POLA_KELAHIRAN = r"\b(?:lahir|dilahirkan)\b"
+
+def nama_sesuai(nama_pertanyaan, nama_sumber):
+    return normalize_question(nama_pertanyaan) == normalize_question(nama_sumber)
 
 def validasi_tokoh(nama_tokoh, kalimat):
-    pola = r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|Ia)\s+lahir\b"
-
-    hasil = re.search(pola, kalimat)
-
-    if hasil is None:
+    pola = rf"\b((?i:ia|dia|beliau)|{POLA_NAMA})\s+(?i:lahir|dilahirkan)\b"
+    subjek = [m.group(1) for m in re.finditer(pola, kalimat)]
+    if not subjek:
         return "PERLU_KONTEKS"
-
-    subjek = hasil.group(1)
-
-    if subjek.lower() == nama_tokoh.lower():
-        return "COCOK"
-
-    if subjek.lower() in ["ia", "dia", "beliau"]:
-        return "PERLU_KONTEKS"
-
-    return "TIDAK_COCOK"
-
-def periksa_konteks_tokoh(nama_tokoh, id_kalimat, kalimat_blok):
-    """
-    Mencari penyebutan nama tokoh pada kalimat sebelumnya dalam blok yang sama.
-
-    Return:
-        ID kalimat pendukung jika ditemukan, atau None jika tidak ditemukan.
-    """
-
-    indeks_target = None
-
-    # Cari posisi kalimat target
-    for indeks, item in enumerate(kalimat_blok):
-        if item["id_kalimat"] == id_kalimat:
-            indeks_target = indeks
-            break
-
-    if indeks_target is None:
-        return None
-
-    # Periksa maksimal 3 kalimat sebelumnya
-    awal = max(0, indeks_target - 3)
-
-    for sebelumnya in reversed(kalimat_blok[awal:indeks_target]):
-        teks = sebelumnya["teks_asli"]
-        
-        if re.search(
-            r"\b(?:bertemu dengan|menemui)\b",
-            teks,
-            flags=re.IGNORECASE
-        ):
-            return None
-
-        status = validasi_tokoh(nama_tokoh, teks)
-
-        if status == "COCOK":
-            return sebelumnya["id_kalimat"]
-
-    return None
+    status = [
+        "PERLU_KONTEKS" if s.casefold() in {"ia", "dia", "beliau"}
+        else "COCOK" if nama_sesuai(nama_tokoh, s) else "TIDAK_COCOK"
+        for s in subjek
+    ]
+    if "TIDAK_COCOK" in status:
+        return "TIDAK_COCOK"
+    return "COCOK" if "COCOK" in status else "PERLU_KONTEKS"
 
 def cek_subjek_kelahiran(nama_tokoh, teks):
-    """
-    Memeriksa apakah subjek peristiwa kelahiran
-    sesuai dengan nama tokoh yang ditanyakan.
+    """Antarmuka lama untuk LOC; memakai implementasi yang sama dengan DATE."""
+    return validasi_tokoh(nama_tokoh, teks)
 
-    Return:
-        COCOK, TIDAK_COCOK, atau PERLU_KONTEKS.
-    """
-
-    pola = (
-        r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)"
-        r"\s+(?:lahir|dilahirkan)\b"
-    )
-
-    hasil = re.search(pola, teks)
-
-    if hasil is None:
-        return "PERLU_KONTEKS"
-
-    subjek = hasil.group(1)
-
-    if subjek.lower() == nama_tokoh.lower():
-        return "COCOK"
-
-    if subjek.lower() in ["ia", "dia", "beliau"]:
-        return "PERLU_KONTEKS"
-
-    return "TIDAK_COCOK"
+def periksa_konteks_tokoh(nama_tokoh, id_kalimat, kalimat_blok):
+    """Cari bukti identitas pada maksimal tiga kalimat sebelumnya, satu blok."""
+    posisi = next((i for i, item in enumerate(kalimat_blok)
+                   if item["id_kalimat"] == id_kalimat), None)
+    if posisi is None:
+        return None
+    for item in reversed(kalimat_blok[max(0, posisi - 3):posisi]):
+        teks = item["teks_asli"]
+        if re.search(r"\b(?:bertemu(?:\s+dengan)?|menemui)\b", teks, re.I):
+            return None
+        status = validasi_tokoh(nama_tokoh, teks)
+        if status == "TIDAK_COCOK":
+            return None
+        if status == "COCOK":
+            return item["id_kalimat"]
+    return None
 
 def ambil_tokoh_pertanyaan(pertanyaan):
-    """
-    Mengambil nama tokoh dari pertanyaan lokasi kelahiran dengan susunan 'Di mana [tokoh] lahir/dilahirkan?'.
-    """
-
-    pola = (
-        r"^\s*di\s*mana\s+(.+?)\s+"
-        r"(?:lahir|dilahirkan)\s*\?$"
-    )
-
-    hasil = re.search(pola, pertanyaan, flags=re.IGNORECASE)
-
-    if hasil:
-        return hasil.group(1).strip()
-
-    return None
+    """Nama dari pertanyaan lokasi kelahiran."""
+    m = re.fullmatch(r"\s*di\s*mana(?:kah)?\s+(.+?)\s+(?:lahir|dilahirkan)\s*\??\s*", pertanyaan, re.I)
+    return m.group(1).strip() if m else None
