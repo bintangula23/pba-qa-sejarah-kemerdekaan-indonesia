@@ -1,25 +1,65 @@
-# Korpus proyek QA Sejarah Indonesia
+# Question Answering System — Sejarah Indonesia
 
-Folder ini berisi data hasil preprocessing untuk proyek tanya jawab tanpa LLM.
-**Gunakan `korpus_kalimat_final.json` sebagai masukan modul pencarian dan
-pengambilan jawaban.** File lain menyimpan tahapan sebelumnya dan kamus alias.
-Paket ini belum berisi chatbot atau modul NLP masing-masing anggota.
+Proyek akhir mata kuliah Pemrosesan Bahasa Alami (PBA).
 
-## 1. Isi folder
+Sistem Question Answering berbasis Information Retrieval
+yang dirancang untuk menjawab pertanyaan factoid mengenai
+sejarah Indonesia tanpa menggunakan Large Language Model (LLM).
 
-| File | Isi dan kegunaan |
-| --- | --- |
-| **`korpus_kalimat_final.json`** | Data utama: 3.140 kalimat; teks pencarian sudah dinormalisasi huruf kecil, spasi, alias, dan tanggal. |
-| `alias.json` | Kamus 17 pasangan variasi penulisan dan bentuk untuk pencarian. Isinya juga tersimpan di metadata korpus final. |
-| `korpus_kalimat_alias.json` | Hasil setelah normalisasi alias, sebelum normalisasi tanggal. Untuk menelusuri perubahan antar tahap. |
-| `korpus_kalimat.json` | Hasil pemecah kalimat, sebelum normalisasi alias dan tanggal. |
-| `korpus_sejarah_indonesia_aktif.json` | Korpus artikel/bagian/blok: 21 artikel, 1.133 blok, dan 59.332 kata pada field `teks`. |
-| `cek_korpus.py` | Skrip penghitung dokumen dan kata pada korpus artikel. |
-| `README.md` | Petunjuk penggunaan paket. |
+Sistem mengimplementasikan tiga tahapan utama:
+Question Processing, Passage Retrieval menggunakan BM25,
+dan Answer Processing berbasis aturan.
 
-Urutan pengerjaan: korpus artikel → pemecah kalimat → normalisasi alias →
-normalisasi tanggal → korpus final. Tiga JSON kalimat berisi tahapan data yang sama;
-jangan digabung menjadi satu indeks karena akan menggandakan isinya.
+Korpus utama terdiri dari 21 artikel sejarah Indonesia
+yang telah melalui preprocessing dan menghasilkan
+3.140 kalimat untuk proses retrieval.
+
+## 1. Struktur Repository
+
+```text
+pba-qa-sejarah-indonesia/
+├── preprocessing/
+│   ├── Pemecah_Kalimat_Korpus.ipynb
+│   ├── Normalisasi_Alias.ipynb
+│   ├── Normalisasi_Tanggal_dan_Penanda_Soal.ipynb
+│   └── cek_korpus.py
+├── question_processing/
+│   └── question_processing.py
+├── passage_retrieval/
+│   ├── passage_retrieval.py
+│   └── context_expansion.py
+├── answer_processing/
+│   ├── answer_processing.py
+│   ├── validasi_tokoh.py
+│   └── README_ANSWER_PROCESSING.md
+├── integration_evaluation/
+│   ├── Chatbot_Kerangka.ipynb
+│   └── Integrasi_Chatbot_Sejarah.ipynb
+├── data/
+│   ├── raw/
+│   ├── processed/
+│   └── dictionary/
+├── results/
+│   ├── baseline/
+│   ├── arsip_pengujian/
+│   └── normalized/
+├── tests/
+│   └── test_evaluasi_resmi.py
+├── requirements.txt
+├── .gitignore
+└── README.md
+```
+
+| Folder | Deskripsi |
+|---|---|
+| preprocessing | Segmentasi kalimat, normalisasi alias, tanggal, dan validasi korpus |
+| question_processing | Normalisasi dan klasifikasi pertanyaan |
+| passage_retrieval | Tokenisasi, pembobotan BM25, dan ranking passage |
+| answer_processing | Ekstraksi dan validasi jawaban |
+| integration_evaluation | Integrasi sistem, chatbot, dan evaluasi |
+| data | Korpus awal, korpus hasil preprocessing, dan kamus alias |
+| results | Hasil pengujian dan eksperimen sistem |
+| tests | Pengujian sistem QA |
 
 ## 2. Cara membaca korpus final
 
@@ -31,7 +71,7 @@ Contoh Python, dijalankan dari folder `NLP`:
 ```python
 import json
 
-with open("korpus_kalimat_final.json", encoding="utf-8") as f:
+with open("data/processed/korpus_kalimat_final.json", encoding="utf-8") as f:
     data = json.load(f)
 
 kalimat = data["kalimat"]
@@ -64,7 +104,7 @@ halaman Wikipedia. Jangan menimpanya dengan hasil normalisasi.
 Pertanyaan pengguna perlu melalui aturan yang sama dengan `teks_cari`:
 
 1. Jadikan huruf kecil dan rapikan spasi.
-2. Terapkan kamus alias dari `alias.json` atau `metadata.aturan_alias`.
+2. Terapkan kamus alias dari `data/dictionary/alias.json` atau `metadata.aturan_alias`.
 3. Normalisasikan tanggal menjadi **`d bulan yyyy`**, misalnya `16/08/1945`
    dan `1945-08-16` menjadi `16 agustus 1945`.
 

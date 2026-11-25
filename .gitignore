@@ -27,7 +27,8 @@ Thumbs.db
 *.tmp
 ~$*
 
-# Hasil preprocessing dapat dibuat ulang
+# Hasil preprocessing
 data/processed/*
 !data/processed/.gitkeep
 !data/processed/README.md
+!data/processed/*.json

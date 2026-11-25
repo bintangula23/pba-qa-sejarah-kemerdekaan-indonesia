@@ -2,12 +2,19 @@ import json
 import math
 import re
 from collections import Counter
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+CORPUS_FILE = (
+    BASE_DIR / "data" / "processed" / "korpus_kalimat_final.json"
+)
 
 # 1. Baca korpus final
-with open("korpus_kalimat_final.json", encoding="utf-8") as f:
+with open(CORPUS_FILE, encoding="utf-8") as f:
     data = json.load(f)
-kalimat = data["kalimat"]
 
+kalimat = data["kalimat"]
 
 # 2. Tokenisasi: huruf kecil, ambil huruf dan angka, buang tanda baca
 def tokenisasi(teks):

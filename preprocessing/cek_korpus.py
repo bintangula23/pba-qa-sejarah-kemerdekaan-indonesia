@@ -1,6 +1,13 @@
 import json
+from pathlib import Path
 
-with open("korpus_sejarah_indonesia_aktif.json", encoding="utf-8") as f:
+BASE_DIR = Path(__file__).resolve().parents[1]
+
+CORPUS_FILE = (
+    BASE_DIR / "data" / "raw" / "korpus_sejarah_indonesia_aktif.json"
+)
+
+with open(CORPUS_FILE, encoding="utf-8") as f:
         data = json.load(f)
 
 print("Jumlah dokumen:", len(data))

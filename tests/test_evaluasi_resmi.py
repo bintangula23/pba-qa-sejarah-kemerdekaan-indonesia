@@ -1,8 +1,15 @@
 import json
+from pathlib import Path
 
-from question_processing import process_question
-from passage_retrieval import cari
-from answer_processing import ambil_jawaban
+from question_processing.question_processing import process_question
+from passage_retrieval.passage_retrieval import cari
+from answer_processing.answer_processing import ambil_jawaban
+
+ROOT = Path(__file__).resolve().parents[1]
+
+CORPUS_FILE = (
+    ROOT / "data" / "processed" / "korpus_kalimat_final.json"
+)
 
 kasus_uji = [
     {
@@ -145,7 +152,7 @@ kasus_uji = [
     }
 ]
 
-with open("korpus_kalimat_final.json", encoding="utf-8") as file:
+with open(CORPUS_FILE, encoding="utf-8") as file:
     data = json.load(file)
 
 kalimat_korpus = data["kalimat"]
@@ -157,7 +164,7 @@ for kasus in kasus_uji:
     pertanyaan = kasus["pertanyaan"]
 
     info = process_question(pertanyaan)
-    kandidat = cari(pertanyaan, k=20)
+    kandidat = cari(info["normalized_question"], k=20)
 
     hasil = ambil_jawaban(
         info,
