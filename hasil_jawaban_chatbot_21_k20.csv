@@ -1,0 +1,22 @@
+﻿id,pertanyaan,tipe_jawaban,jawaban_acuan,jawaban_chatbot,id_sumber,cocok_persis
+D01,Sumber daya alam apakah yang menjadi sasaran utama Jepang dalam pendudukannya di Hindia Belanda?,MISC,Minyak bumi,Minyak bumi,D01-B0009-K002,True
+D02,Dimana masa persidangan pertama BPUPK dibuka?,LOC,Gedung Chuo Sangi In di Jakarta,Gedung Chuo Sangi In di Jakarta,D02-B0010-K001,True
+D03,Siapa yang ditunjuk PPKI sebagai wakil presiden pertama Indonesia?,PER,Mohammad Hatta,Mohammad Hatta,D03-B0001-K002,True
+D04,"Siapa yang memberikan julukan ""Piagam Jakarta"" kepada naskah usulan Mukadimah Undang-Undang Dasar Indonesia?",PER,Mohammad Yamin,Mohammad Yamin,D04-B0017-K001,True
+D05,Pada tanggal berapa Soekarno dan Mohammad Hatta dibawa ke Rengasdengklok?,DATE,16 Agustus 1945,16 Agustus 1945,D05-B0001-K001,True
+D06,Apa nama kapal tempat Jepang secara resmi menyerah kepada Sekutu?,MISC,USS Missouri,USS Missouri,D06-B0007-K001,True
+D07,Ke kota manakah Soekarno diasingkan bersama keluarganya pada tahun 1934?,LOC,Ende,Ende,D07-B0019-K002,True
+D08,Kapan Mohammad Hatta lahir?,DATE,12 Agustus 1902,12 Agustus 1902,D08-B0004-K003,True
+D09,Pada tahun berapa Sutan Sjahrir mendirikan Partai Sosialis Indonesia?,DATE,1948,1948,D09-B0002-K001,True
+D10,Pada tanggal berapa Soebardjo dilantik sebagai Menteri Luar Negeri pada Kabinet Presidensial?,DATE,18 Agustus 1945,18 Agustus 1945,D10-B0011-K001,True
+D11,Dimana Fatmawati dilahirkan?,LOC,Bengkulu,Bengkulu,D11-B0002-K001,True
+D12,Siapa yang terpilih menjadi panglima Tentara Keamanan Rakyat?,PER,Sudirman,Sudirman,D12-B0009-K006,True
+D13,Siapa komandan pasukan Britania yang tewas dalam baku tembak pada 30 Oktober 1945 di Surabaya?,PER,Brigadir A. W. S. Mallaby,Brigadir A. W. S. Mallaby,D13-B0002-K002,True
+D14,Siapa anggota milisi BRI yang meledakkan gudang amunisi di Dayeuhkolot dengan dinamit?,PER,Muhammad Toha,Muhammad Toha,D14-B0007-K006,True
+D15,Di daerah mana pasukan Belanda melakukan pendaratan dalam Operasi Produk Utara?,LOC,"Pasir Poetih, Situbondo","Pasir Poetih, Situbondo",D15-B0005-K002,True
+D16,Operasi militer Belanda yang dikenal dengan sebutan Operasi Gagak dilancarkan pada bulan apa?,DATE,Desember 1948,Desember 1948,D16-B0001-K001,True
+D17,Siapakah Letkol yang memimpin pasukan dari sektor barat hingga ke batas Malioboro dalam Serangan Umum 1 Maret 1949?,PER,Letkol Soeharto,Letkol Soeharto,D17-B0004-K004,True
+D18,Siapa yang bertindak sebagai perantara pada tahap awal Perundingan Linggajati?,PER,Lord Killearn,Lord Killearn,D18-B0013-K001,True
+D19,Dimana kapal USS Renville berlabuh saat negosiasi Perjanjian Renville berlangsung?,LOC,Teluk Jakarta,Teluk Jakarta,D19-B0002-K001,True
+D20,Siapa kepala delegasi Republik Indonesia dalam perundingan Roem-Roijen?,PER,Mohamad Roem,Mohamad Roem,D20-B0002-K002,True
+D21,Berapa jumlah negara bagian Republik Indonesia Serikat?,NUM,16 negara bagian,16 negara bagian,D21-B0018-K003,True
