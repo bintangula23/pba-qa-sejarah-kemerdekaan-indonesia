@@ -1,0 +1,855 @@
+{
+  "ringkasan": {
+    "jumlah_pertanyaan": 21,
+    "jenis_pertanyaan_sesuai": 21,
+    "recall_blok": {
+      "at1": {
+        "jumlah": 16,
+        "persen": 76.19
+      },
+      "at3": {
+        "jumlah": 19,
+        "persen": 90.48
+      },
+      "at5": {
+        "jumlah": 19,
+        "persen": 90.48
+      }
+    },
+    "recall_bukti_literal": {
+      "at1": {
+        "jumlah": 15,
+        "persen": 71.43
+      },
+      "at3": {
+        "jumlah": 18,
+        "persen": 85.71
+      },
+      "at5": {
+        "jumlah": 18,
+        "persen": 85.71
+      }
+    }
+  },
+  "hasil": [
+    {
+      "id_dokumen": "D01",
+      "pertanyaan": "Sumber daya alam apakah yang menjadi sasaran utama Jepang dalam pendudukannya di Hindia Belanda?",
+      "jenis_acuan": "apa",
+      "jawaban_acuan": "Minyak bumi",
+      "blok_acuan": "D01-B0009",
+      "jenis_prediksi": "APA",
+      "tipe_jawaban": "MISC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 2,
+      "peringkat_bukti_top5": 2,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D07-B0023-K002",
+          "skor": 20.8063,
+          "teks_asli": "Sebaliknya Jepang membutuhkan tenaga kerja dan sumber daya alam Indonesia untuk membantu upaya perangnya."
+        },
+        {
+          "id_kalimat": "D01-B0009-K002",
+          "skor": 18.6989,
+          "teks_asli": "Tujuan Jepang menyerang dan menduduki Hindia Belanda adalah untuk menguasai sumber-sumber alam, terutama minyak bumi, guna mendukung potensi perang Jepang serta mendukung industrinya."
+        },
+        {
+          "id_kalimat": "D01-B0273-K001",
+          "skor": 16.3779,
+          "teks_asli": "Kegiatan ekonomi diarahkan untuk kepentingan perang maka seluruh potensi sumber daya alam dan bahan mentah digunakan untuk industri yang mendukung mesin perang."
+        },
+        {
+          "id_kalimat": "D12-B0051-K002",
+          "skor": 15.8223,
+          "teks_asli": "Di seluruh negara, masyarakat bangkit melawan kekuasaan aristokrasi dan kepala daerah dan mencoba untuk mendorong penguasaan lahan dan sumber daya alam atas nama rakyat."
+        },
+        {
+          "id_kalimat": "D01-B0297-K001",
+          "skor": 13.7383,
+          "teks_asli": "Penghimpunan segala sumber daya seperti sandang, pangan, logam, dan minyak demi kepentingan perang oleh Jepang."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D02",
+      "pertanyaan": "Dimana masa persidangan pertama BPUPK dibuka?",
+      "jenis_acuan": "dimana",
+      "jawaban_acuan": "Gedung Chuo Sangi In di Jakarta",
+      "blok_acuan": "D02-B0010",
+      "jenis_prediksi": "DI_MANA",
+      "tipe_jawaban": "LOC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": null,
+      "peringkat_bukti_top5": null,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D02-B0016-K001",
+          "skor": 19.4754,
+          "teks_asli": "Pidato dari Ir. Soekarno ini sekaligus mengakhiri masa persidangan BPUPK yang pertama, setelah itu BPUPK mengalami masa reses persidangan (periode jeda atau istirahat) selama satu bulan lebih."
+        },
+        {
+          "id_kalimat": "D02-B0022-K001",
+          "skor": 17.0621,
+          "teks_asli": "Di antara dua masa persidangan resmi BPUPK itu, berlangsung pula persidangan tak resmi yang dihadiri 38 orang anggota BPUPK."
+        },
+        {
+          "id_kalimat": "D02-B0015-K003",
+          "skor": 14.9097,
+          "teks_asli": "Masa persidangan BPUPK yang pertama ini dikenang dengan sebutan detik-detik lahirnya Pancasila dan tanggal 1 Juni ditetapkan dan diperingati sebagai hari lahirnya Pancasila."
+        },
+        {
+          "id_kalimat": "D02-B0009-K001",
+          "skor": 14.248,
+          "teks_asli": "Selama BPUPK berdiri, telah diadakan dua kali masa persidangan resmi BPUPK, dan juga adanya pertemuan-pertemuan yang tak resmi oleh panitia kecil di bawah BPUPK."
+        },
+        {
+          "id_kalimat": "D02-B0023-K001",
+          "skor": 14.0569,
+          "teks_asli": "Masa persidangan BPUPK yang kedua berlangsung sejak tanggal 10 Juli 1945 hingga tanggal 17 Juli 1945."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D03",
+      "pertanyaan": "Siapa yang ditunjuk PPKI sebagai wakil presiden pertama Indonesia?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Mohammad Hatta",
+      "blok_acuan": "D03-B0001",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 2,
+      "peringkat_bukti_top5": 2,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D06-B0020-K001",
+          "skor": 18.0829,
+          "teks_asli": "Setelah itu Soekarno dan Mohammad Hatta terpilih atas usul dari Otto Iskandardinata dan persetujuan dari PPKI sebagai presiden dan wakil presiden Republik Indonesia yang pertama."
+        },
+        {
+          "id_kalimat": "D03-B0001-K002",
+          "skor": 16.588,
+          "teks_asli": "Badan ini menyetujui dan mengesahkan Konstitusi pertama Indonesia, serta menunjuk Soekarno dan Mohammad Hatta masing-masing sebagai presiden dan wakil presiden pertama Indonesia."
+        },
+        {
+          "id_kalimat": "D01-B0241-K001",
+          "skor": 16.4771,
+          "teks_asli": "18 Agustus - PPKI membentuk sebuah pemerintahan sementara dengan Soekarno sebagai Presiden dan Hatta sebagai Wakil Presiden."
+        },
+        {
+          "id_kalimat": "D08-B0054-K001",
+          "skor": 15.8177,
+          "teks_asli": "Mohammad Hatta menjabat sebagai Wakil Presiden Indonesia Pertama pada 18 Agustus 1945 — 1 Desember 1956."
+        },
+        {
+          "id_kalimat": "D08-B0029-K002",
+          "skor": 15.4428,
+          "teks_asli": "Keesokan harinya pada tanggal 18 Agustus 1945, dia resmi dipilih sebagai Wakil Presiden RI yang pertama mendampingi Presiden Soekarno."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D04",
+      "pertanyaan": "Siapa yang memberikan julukan \"Piagam Jakarta\" kepada naskah usulan Mukadimah Undang-Undang Dasar Indonesia?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Mohammad Yamin",
+      "blok_acuan": "D04-B0017",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D04-B0017-K001",
+          "skor": 40.5866,
+          "teks_asli": "Pada tanggal 22 Juni 1945, Panitia Sembilan merumuskan naskah usulan Mukadimah Undang-Undang Dasar Indonesia, yang kemudian diberi julukan \"Piagam Jakarta\" oleh Mohammad Yamin."
+        },
+        {
+          "id_kalimat": "D04-B0030-K002",
+          "skor": 28.6501,
+          "teks_asli": "Tujuannya adalah untuk membahas permasalahan terkait undang-undang dasar, termasuk rancangan mukadimah yang terkandung dalam Piagam Jakarta."
+        },
+        {
+          "id_kalimat": "D04-B0001-K001",
+          "skor": 23.6377,
+          "teks_asli": "Piagam Jakarta adalah rancangan Pembukaan Undang-Undang Dasar Negara Republik Indonesia Tahun 1945 (UUD 1945)."
+        },
+        {
+          "id_kalimat": "D04-B0007-K004",
+          "skor": 23.1461,
+          "teks_asli": "Panitia yang diketuai oleh Soekarno ini bertugas merumuskan mukadimah undang-undang dasar Indonesia yang dapat diterima oleh kedua belah pihak."
+        },
+        {
+          "id_kalimat": "D04-B0032-K004",
+          "skor": 22.3137,
+          "teks_asli": "Anggota BPUPK lainnya, Otto Iskandardinata, menentang usulan agar Presiden Indonesia harus Muslim, dan mengusulkan agar tujuh kata di Piagam Jakarta diulang dalam Pasal 29 Rancangan Undang-Undang Dasar."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D05",
+      "pertanyaan": "Pada tanggal berapa Soekarno dan Mohammad Hatta dibawa ke Rengasdengklok?",
+      "jenis_acuan": "kapan",
+      "jawaban_acuan": "16 Agustus 1945",
+      "blok_acuan": "D05-B0001",
+      "jenis_prediksi": "KAPAN",
+      "tipe_jawaban": "DATE",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 3,
+      "peringkat_bukti_top5": 3,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D05-B0002-K001",
+          "skor": 21.3084,
+          "teks_asli": "Soekarno, Hatta, Fatmawati, dan bayi Guntur Soekarnoputra dibawa ke Rengasdengklok."
+        },
+        {
+          "id_kalimat": "D05-B0042-K001",
+          "skor": 19.991,
+          "teks_asli": "Mohammad Hatta adalah pemimpin nasional dan wakil ketua PPKI; dibawa ke Rengasdengklok dan ikut merumuskan naskah Proklamasi."
+        },
+        {
+          "id_kalimat": "D05-B0001-K001",
+          "skor": 17.7761,
+          "teks_asli": "Peristiwa Rengasdengklok adalah peristiwa dibawanya Soekarno dan Mohammad Hatta oleh sejumlah pemuda dari Jakarta ke Rengasdengklok, Karawang, pada sekitar pukul 04.00 pagi tanggal 16 Agustus 1945."
+        },
+        {
+          "id_kalimat": "D05-B0050-K001",
+          "skor": 17.0636,
+          "teks_asli": "Fatmawati adalah istri Soekarno; ikut dibawa bersama Guntur ke Rengasdengklok."
+        },
+        {
+          "id_kalimat": "D10-B0008-K001",
+          "skor": 16.8933,
+          "teks_asli": "Pada tanggal 16 Agustus 1945 Para pemuda pejuang, termasuk Chaerul Saleh, Sukarni, dan Wikana, Shudanco Singgih, dan pemuda lain, membawa Soekarno dan Moh. Hatta ke Rengasdengklok."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D06",
+      "pertanyaan": "Apa nama kapal tempat Jepang secara resmi menyerah kepada Sekutu?",
+      "jenis_acuan": "apa",
+      "jawaban_acuan": "USS Missouri",
+      "blok_acuan": "D06-B0007",
+      "jenis_prediksi": "APA",
+      "tipe_jawaban": "MISC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D06-B0007-K001",
+          "skor": 27.7084,
+          "teks_asli": "Pada tanggal 2 September 1945 Jepang secara resmi menyerah kepada Sekutu di kapal USS Missouri."
+        },
+        {
+          "id_kalimat": "D01-B0236-K001",
+          "skor": 18.1686,
+          "teks_asli": "15 Agustus - Jepang menyerah kepada Sekutu."
+        },
+        {
+          "id_kalimat": "D04-B0037-K006",
+          "skor": 13.8821,
+          "teks_asli": "Kemudian, pada 15 Agustus, Kaisar Hirohito mengumumkan bahwa Jepang telah menyerah tanpa syarat kepada Sekutu."
+        },
+        {
+          "id_kalimat": "D01-B0125-K002",
+          "skor": 13.7542,
+          "teks_asli": "Sekutu kehilangan lima kapal perangnya, sedangkan Jepang hanya menderita kerusakan pada satu kapal perusaknya (Destroyer)."
+        },
+        {
+          "id_kalimat": "D05-B0004-K004",
+          "skor": 12.3193,
+          "teks_asli": "Di Jawa, bagaimanapun, pasukan Jepang masih berada di tempat dan diperintahkan mempertahankan keadaan sampai penyerahan kepada pasukan Sekutu dapat dilaksanakan."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D07",
+      "pertanyaan": "Ke kota manakah Soekarno diasingkan bersama keluarganya pada tahun 1934?",
+      "jenis_acuan": "dimana",
+      "jawaban_acuan": "Ende",
+      "blok_acuan": "D07-B0019",
+      "jenis_prediksi": "DI_MANA",
+      "tipe_jawaban": "LOC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D07-B0019-K002",
+          "skor": 30.2257,
+          "teks_asli": "Pada tahun 1934, Soekarno dikapalkan bersama keluarganya (termasuk Inggit Garnasih), ke kota terpencil Ende, di pulau Flores."
+        },
+        {
+          "id_kalimat": "D08-B0033-K003",
+          "skor": 21.1582,
+          "teks_asli": "Pada tahun yang sama, Bung Hatta bersama Bung Karno diasingkan ke Menumbing, Bangka."
+        },
+        {
+          "id_kalimat": "D21-B0005-K001",
+          "skor": 13.1077,
+          "teks_asli": "Pemerintah Indonesia, yang telah diasingkan selama enam bulan, kembali ke Ibu Kota sementara di Yogyakarta pada 6 Juli 1949."
+        },
+        {
+          "id_kalimat": "D01-B0074-K003",
+          "skor": 12.1188,
+          "teks_asli": "Douwes Dekker diasingkan ke Suriname."
+        },
+        {
+          "id_kalimat": "D08-B0018-K001",
+          "skor": 10.6303,
+          "teks_asli": "Semasa diasingkan ke Digul, ia membawa semua buku-bukunya ke tempat pengasingannya."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D08",
+      "pertanyaan": "Kapan Mohammad Hatta lahir?",
+      "jenis_acuan": "kapan",
+      "jawaban_acuan": "12 Agustus 1902",
+      "blok_acuan": "D08-B0004",
+      "jenis_prediksi": "KAPAN",
+      "tipe_jawaban": "DATE",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": null,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D08-B0004-K001",
+          "skor": 12.9624,
+          "teks_asli": "Mohammad Hatta lahir dari pasangan Muhammad Djamil dan Siti Saleha yang berasal dari Minangkabau."
+        },
+        {
+          "id_kalimat": "D03-B0006-K001",
+          "skor": 9.5031,
+          "teks_asli": "Mohammad Hatta (wakil ketua)"
+        },
+        {
+          "id_kalimat": "D08-B0004-K005",
+          "skor": 8.6006,
+          "teks_asli": "Athar lahir sebagai anak kedua, setelah Rafiah yang lahir pada tahun 1900."
+        },
+        {
+          "id_kalimat": "D08-B0012-K002",
+          "skor": 8.5574,
+          "teks_asli": "Moh. Hatta sendiri dihukum tiga tahun penjara."
+        },
+        {
+          "id_kalimat": "D08-B0006-K009",
+          "skor": 8.5574,
+          "teks_asli": "Mohammad Hatta tetap menjadi bendahara di Jakarta."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D09",
+      "pertanyaan": "Pada tahun berapa Sutan Sjahrir mendirikan Partai Sosialis Indonesia?",
+      "jenis_acuan": "kapan",
+      "jawaban_acuan": "1948",
+      "blok_acuan": "D09-B0002",
+      "jenis_prediksi": "KAPAN",
+      "tipe_jawaban": "DATE",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D09-B0002-K001",
+          "skor": 30.6991,
+          "teks_asli": "Sjahrir mendirikan Partai Sosialis Indonesia pada tahun 1948."
+        },
+        {
+          "id_kalimat": "D09-B0048-K002",
+          "skor": 24.0401,
+          "teks_asli": "Pada tahun 1948 Sjahrir mendirikan Partai Sosialis Indonesia (PSI) sebagai partai alternatif selain partai lain yang tumbuh dari gerakan komunis internasional."
+        },
+        {
+          "id_kalimat": "D09-B0053-K001",
+          "skor": 16.1311,
+          "teks_asli": "Ketua Partai Sosialis Indonesia (PSI)"
+        },
+        {
+          "id_kalimat": "D09-B0003-K004",
+          "skor": 14.2646,
+          "teks_asli": "Sjahrir bersaudara kandung dengan Soetan Sjahsam, seorang makelar saham pribumi paling berpengalaman pada masanya dan Soetan Noeralamsjah, seorang jaksa dan politikus Partai Indonesia Raya (Parindra)."
+        },
+        {
+          "id_kalimat": "D09-B0001-K001",
+          "skor": 14.0364,
+          "teks_asli": "Sutan Sjahrir (Ejaan Van Ophuijsen: Soetan Sjahrir, EYD: Sutan Syahrir; 5 Maret 1909 – 9 April 1966) adalah seorang tokoh negarawan dan pemimpin kemerdekaan Indonesia yang menjabat sebagai Perdana Menteri pertama Indonesia dari tahun 1945 hingga 1947."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D10",
+      "pertanyaan": "Pada tanggal berapa Soebardjo dilantik sebagai Menteri Luar Negeri pada Kabinet Presidensial?",
+      "jenis_acuan": "kapan",
+      "jawaban_acuan": "18 Agustus 1945",
+      "blok_acuan": "D10-B0011",
+      "jenis_prediksi": "KAPAN",
+      "tipe_jawaban": "DATE",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D10-B0011-K001",
+          "skor": 40.0347,
+          "teks_asli": "Pada tanggal 18 Agustus 1945, Soebardjo dilantik sebagai Menteri Luar Negeri pada Kabinet Presidensial, kabinet Indonesia yang pertama, dan kembali menjabat menjadi Menteri Luar Negeri sekali lagi pada tahun 1951 - 1952."
+        },
+        {
+          "id_kalimat": "D09-B0026-K002",
+          "skor": 18.231,
+          "teks_asli": "Pada usia 36 tahun, mulailah lakon Sjahrir dalam panggung memperjuangkan kedaulatan Republik Indonesia, sebagai Perdana Menteri termuda di dunia, merangkap Menteri Luar Negeri dan Menteri Dalam Negeri."
+        },
+        {
+          "id_kalimat": "D08-B0051-K001",
+          "skor": 18.2159,
+          "teks_asli": "Mohammad Hatta menjabat sebagai Menteri Luar Negeri Indonesia (Pada Pemerintahan RIS) pada 20 Desember 1949 — 6 September 1950."
+        },
+        {
+          "id_kalimat": "D12-B0007-K002",
+          "skor": 17.9612,
+          "teks_asli": "Kabinet Presidensial dibentuk, dengan Soekarno sendiri sebagai ketuanya."
+        },
+        {
+          "id_kalimat": "D09-B0035-K001",
+          "skor": 17.0057,
+          "teks_asli": "Setelah kejadian penculikan Sjahrir hanya bertugas sebagai Menteri Luar Negeri, tugas sebagai Perdana Menteri diambil alih Presiden Soekarno."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D11",
+      "pertanyaan": "Dimana Fatmawati dilahirkan?",
+      "jenis_acuan": "dimana",
+      "jawaban_acuan": "Bengkulu",
+      "blok_acuan": "D11-B0002",
+      "jenis_prediksi": "DI_MANA",
+      "tipe_jawaban": "LOC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": null,
+      "peringkat_bukti_top5": null,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D10-B0002-K001",
+          "skor": 8.3083,
+          "teks_asli": "Achmad Soebardjo dilahirkan di Teluk Jambe, Karawang, Keresidenan Batavia, pada 23 Maret 1896."
+        },
+        {
+          "id_kalimat": "D11-B0004-K001",
+          "skor": 7.0844,
+          "teks_asli": "Fatmawati dikenal anti dengan poligami."
+        },
+        {
+          "id_kalimat": "D11-B0013-K002",
+          "skor": 6.6144,
+          "teks_asli": "Ibu Fatmawati akhirnya mendapatkan kain merah putih."
+        },
+        {
+          "id_kalimat": "D07-B0025-K003",
+          "skor": 6.6144,
+          "teks_asli": "Pada tahun 1943, ia menikah dengan Fatmawati."
+        },
+        {
+          "id_kalimat": "D11-B0003-K001",
+          "skor": 6.4021,
+          "teks_asli": "Pada tahun 1943, Fatmawati menjadi istri ketiga Soekarno."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D12",
+      "pertanyaan": "Siapa yang terpilih menjadi panglima Tentara Keamanan Rakyat?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Sudirman",
+      "blok_acuan": "D12-B0009",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D12-B0009-K006",
+          "skor": 22.7081,
+          "teks_asli": "Pada 12 November 1945, dalam sebuah konferensi antar panglima-panglima divisi militer di Yogyakarta seorang mantan guru sekolah berumur 30 tahun bernama Sudirman terpilih menjadi panglima Tentara Keamanan Rakyat, bergelar \"Panglima Besar\"."
+        },
+        {
+          "id_kalimat": "D03-B0052-K005",
+          "skor": 17.0572,
+          "teks_asli": "Kelak, BKR berkembng menjadi Tentara Keamanan Rakyat (TKR) yang kemudian menjadi cikal bakal terbentuknya Tentara Nasional Indonesia (TNI)."
+        },
+        {
+          "id_kalimat": "D07-B0052-K003",
+          "skor": 12.3398,
+          "teks_asli": "Baru pada bulan Oktober 1945 BKR direformasi menjadi Tentara Keamanan Rakyat (TKR) sebagai respons terhadap meningkatnya kehadiran Sekutu dan Belanda di Indonesia."
+        },
+        {
+          "id_kalimat": "D14-B0003-K003",
+          "skor": 12.3167,
+          "teks_asli": "Mereka menuntut agar semua senjata api yang berada di tangan rakyat, kecuali milik TKR (Tentara Keamanan Rakyat), diserahkan kepada pihak Inggris."
+        },
+        {
+          "id_kalimat": "D03-B0052-K001",
+          "skor": 11.6065,
+          "teks_asli": "Pembentukan Badan Keamanan Rakyat (BKR) bertujuan agar tidak memancing permusuhan dengan tentara asing di Indonesia."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D13",
+      "pertanyaan": "Siapa komandan pasukan Britania yang tewas dalam baku tembak pada 30 Oktober 1945 di Surabaya?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Brigadir A. W. S. Mallaby",
+      "blok_acuan": "D13-B0002",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D13-B0002-K002",
+          "skor": 43.8959,
+          "teks_asli": "Pertempuran pecah pada 30 Oktober setelah komandan pasukan Britania, Brigadir A. W. S. Mallaby tewas dalam baku tembak."
+        },
+        {
+          "id_kalimat": "D13-B0002-K001",
+          "skor": 23.5517,
+          "teks_asli": "Ketika pasukan Britania mendarat pada akhir Oktober 1945, Surabaya digambarkan sebagai \"benteng bersatu yang kuat [di bawah Pemuda]\"."
+        },
+        {
+          "id_kalimat": "D13-B0006-K003",
+          "skor": 21.6709,
+          "teks_asli": "Ketika gerakan untuk melucuti pasukan Jepang sedang berkobar, tanggal 15 September 1945, pasukan Britania mendarat di Jakarta, kemudian mendarat di Surabaya pada tanggal 25 Oktober 1945."
+        },
+        {
+          "id_kalimat": "D07-B0113-K006",
+          "skor": 19.3318,
+          "teks_asli": "Pada tanggal 2 Oktober, tentara Soeharto menduduki Pangkalan Angkatan Udara Halim, setelah baku tembak singkat."
+        },
+        {
+          "id_kalimat": "D13-B0012-K002",
+          "skor": 18.0908,
+          "teks_asli": "Pada 20 Februari 1946, dalam perdebatan di Parlemen Inggris (House of Commons) meragukan bahwa baku tembak ini dimulai oleh pasukan pihak Indonesia."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D14",
+      "pertanyaan": "Siapa anggota milisi BRI yang meledakkan gudang amunisi di Dayeuhkolot dengan dinamit?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Muhammad Toha",
+      "blok_acuan": "D14-B0007",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D14-B0007-K006",
+          "skor": 29.9062,
+          "teks_asli": "Muhammad Toha berhasil meledakkan gudang tersebut dengan dinamit."
+        },
+        {
+          "id_kalimat": "D14-B0007-K005",
+          "skor": 26.416,
+          "teks_asli": "Dalam pertempuran ini Muhammad Toha dan Muhammad Ramdan, dua anggota milisi BRI (Barisan Rakjat Indonesia) terjun dalam misi untuk menghancurkan gudang amunisi tersebut."
+        },
+        {
+          "id_kalimat": "D14-B0007-K004",
+          "skor": 22.6188,
+          "teks_asli": "Pertempuran yang paling besar terjadi di Desa Dayeuhkolot, sebelah selatan Bandung, di mana terdapat gudang amunisi besar milik Tentara Sekutu."
+        },
+        {
+          "id_kalimat": "D14-B0007-K007",
+          "skor": 14.7824,
+          "teks_asli": "Gudang besar itu meledak dan terbakar bersama kedua milisi tersebut di dalamnya."
+        },
+        {
+          "id_kalimat": "D07-B0100-K007",
+          "skor": 10.773,
+          "teks_asli": "Agen Indonesia juga meledakkan beberapa bom di Singapura."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D15",
+      "pertanyaan": "Di daerah mana pasukan Belanda melakukan pendaratan dalam Operasi Produk Utara?",
+      "jenis_acuan": "dimana",
+      "jawaban_acuan": "Pasir Poetih, Situbondo",
+      "blok_acuan": "D15-B0005",
+      "jenis_prediksi": "DI_MANA",
+      "tipe_jawaban": "LOC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D15-B0005-K002",
+          "skor": 27.714,
+          "teks_asli": "Operasi Produk di Jawa Timur terdiri dari tiga operasi pendaratan: Produk Utara di Pasir Poetih, Situbondo, Produk Selatan di Teluk Meneng, Malang, dan Produk Timur di Porong, Sidoarjo."
+        },
+        {
+          "id_kalimat": "D12-B0063-K002",
+          "skor": 18.7738,
+          "teks_asli": "dari serangan Belanda dalam Agresi Militer I (atau Operasi Produk)."
+        },
+        {
+          "id_kalimat": "D15-B0006-K001",
+          "skor": 16.4379,
+          "teks_asli": "Meskipun demikian, TNI dan sekutunya terus melakukan operasi gerilya dari daerah pedesaan di wilayah yang dikuasai Belanda."
+        },
+        {
+          "id_kalimat": "D12-B0029-K005",
+          "skor": 12.7635,
+          "teks_asli": "Di area yang dikuasa angkatan laut Jepang, kedatangan pasukan Sekutu segera saja menghentikan aksi-aksi revolusioner, di mana tentara Australia (diikuti pasukan Belanda dan pegawai-pegawai sipilnya), dengan cepat menguasai daerah-daerah yang sebelumnya dikuasai Jepang, kecuali Bali dan Lombok."
+        },
+        {
+          "id_kalimat": "D16-B0001-K002",
+          "skor": 12.1046,
+          "teks_asli": "Operasi ini merupakan salah satu dari dua serangan besar yang dilancarkan oleh Belanda selama Revolusi Nasional Indonesia, yang lainnya adalah Operasi Produk, dan keduanya secara kolektif disebut sebagai Aksi Polisionil."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D16",
+      "pertanyaan": "Operasi militer Belanda yang dikenal dengan sebutan Operasi Gagak dilancarkan pada bulan apa?",
+      "jenis_acuan": "kapan",
+      "jawaban_acuan": "Desember 1948",
+      "blok_acuan": "D16-B0001",
+      "jenis_prediksi": "KAPAN",
+      "tipe_jawaban": "DATE",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D16-B0001-K001",
+          "skor": 27.6264,
+          "teks_asli": "Agresi Militer Belanda II (bahasa Belanda: Operatie Kraai, har. 'Operasi Gagak') adalah serangan militer Belanda yang dilancarkan pada Desember 1948 terhadap Republik Indonesia, setelah kegagalan negosiasi dengan pemerintah Republik."
+        },
+        {
+          "id_kalimat": "D12-B0067-K001",
+          "skor": 20.2165,
+          "teks_asli": "Frustrasi dengan negosiasi dengan Republik dan percaya bahwa Republik telah melemah akibat pemberontakan Darul Islam dan Madiun, Belanda melancarkan serangan militer pada 19 Desember 1948 yang disebutnya 'Operatie Kraai' (Operasi Gagak)."
+        },
+        {
+          "id_kalimat": "D16-B0001-K002",
+          "skor": 18.9584,
+          "teks_asli": "Operasi ini merupakan salah satu dari dua serangan besar yang dilancarkan oleh Belanda selama Revolusi Nasional Indonesia, yang lainnya adalah Operasi Produk, dan keduanya secara kolektif disebut sebagai Aksi Polisionil."
+        },
+        {
+          "id_kalimat": "D12-B0063-K002",
+          "skor": 18.2619,
+          "teks_asli": "dari serangan Belanda dalam Agresi Militer I (atau Operasi Produk)."
+        },
+        {
+          "id_kalimat": "D17-B0002-K001",
+          "skor": 17.8905,
+          "teks_asli": "Belanda merasa frustrasi dalam negosiasi dengan republik dan meyakini bahwa republik telah dilemahkan oleh pemberontakan Darul Islam dan Madiun, sehingga mereka melancarkan serangan militer pada tanggal 19 Desember 1948 yang disebut sebagai Operatie Kraai (Operasi Gagak)."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D17",
+      "pertanyaan": "Siapakah Letkol yang memimpin pasukan dari sektor barat hingga ke batas Malioboro dalam Serangan Umum 1 Maret 1949?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Letkol Soeharto",
+      "blok_acuan": "D17-B0004",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D17-B0004-K004",
+          "skor": 48.5536,
+          "teks_asli": "Dalam penyerangan ini Letkol Soeharto langsung memimpin pasukan dari sektor barat sampai ke batas Malioboro."
+        },
+        {
+          "id_kalimat": "D12-B0049-K001",
+          "skor": 32.7164,
+          "teks_asli": "Serangan Umum 1 Maret 1949, di Yogyakarta pada 1 Maret 1949, dipimpin oleh Letkol (TNI) Suharto."
+        },
+        {
+          "id_kalimat": "D17-B0001-K001",
+          "skor": 24.6946,
+          "teks_asli": "Serangan Umum 1 Maret 1949 (Belanda: Algemeen offensief van 1 maart 1949) adalah serangan militer selama Revolusi Nasional Indonesia ketika Kota Yogyakarta dikuasai oleh pasukan Indonesia selama enam jam."
+        },
+        {
+          "id_kalimat": "D12-B0050-K001",
+          "skor": 19.6828,
+          "teks_asli": "Serangan Umum Surakarta, di Surakarta pada 7-10 Agustus 1949, dipimpin oleh Letkol (TNI) Slamet Rijadi."
+        },
+        {
+          "id_kalimat": "D17-B0010-K001",
+          "skor": 17.949,
+          "teks_asli": "Serangan Umum 1 Maret mampu menguatkan posisi tawar dari Republik Indonesia, mempermalukan Belanda yang telah mengklaim bahwa RI sudah lemah."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D18",
+      "pertanyaan": "Siapa yang bertindak sebagai perantara pada tahap awal Perundingan Linggajati?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Lord Killearn",
+      "blok_acuan": "D18-B0013",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D18-B0013-K001",
+          "skor": 20.3324,
+          "teks_asli": "Mantan Duta Besar Inggris untuk Mesir, Lord Killearn, bertindak sebagai perantara pada tahap awal, namun perannya tidak lagi diperlukan karena kedua belah pihak berhasil menjalin hubungan baik dan menandatangani rancangan perjanjian pada tanggal 15 November."
+        },
+        {
+          "id_kalimat": "D11-B0013-K001",
+          "skor": 15.4968,
+          "teks_asli": "Berkat bantuan Shimizu, yang merupakan orang ditunjuk oleh Pemerintah Jepang sebagai perantara dalam perundingan Jepang-Indonesia."
+        },
+        {
+          "id_kalimat": "D09-B0054-K001",
+          "skor": 14.4899,
+          "teks_asli": "Ketua delegasi Republik Indonesia pada Perundingan Linggarjati"
+        },
+        {
+          "id_kalimat": "D09-B0035-K002",
+          "skor": 12.4364,
+          "teks_asli": "Namun, pada tanggal 2 Oktober 1946, Presiden menunjuk kembali Sjahrir sebagai Perdana Menteri agar dapat melanjutkan Perundingan Linggarjati yang akhirnya ditandatangani pada 15 November 1946."
+        },
+        {
+          "id_kalimat": "D19-B0001-K002",
+          "skor": 11.2992,
+          "teks_asli": "Diratifikasi pada 17 Januari 1948, perjanjian ini merupakan upaya yang gagal untuk menyelesaikan perselisihan yang muncul setelah Perundingan Linggajati tahun 1946."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D19",
+      "pertanyaan": "Dimana kapal USS Renville berlabuh saat negosiasi Perjanjian Renville berlangsung?",
+      "jenis_acuan": "dimana",
+      "jawaban_acuan": "Teluk Jakarta",
+      "blok_acuan": "D19-B0002",
+      "jenis_prediksi": "DI_MANA",
+      "tipe_jawaban": "LOC",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D19-B0002-K001",
+          "skor": 46.9639,
+          "teks_asli": "Perjanjian ini dinamai menurut USS Renville, kapal tempat negosiasi diadakan saat berlabuh di Teluk Jakarta."
+        },
+        {
+          "id_kalimat": "D19-B0006-K003",
+          "skor": 23.8986,
+          "teks_asli": "Setelah mempertimbangkan lokasi di luar negeri dan kapal perang AS, Asisten Menteri Luar Negeri AS Dean Rusk mengusulkan penggunaan kapal angkut tak bersenjata USS Renville, yang dibawa ke Indonesia dan berlabuh di Teluk Jakarta."
+        },
+        {
+          "id_kalimat": "D12-B0062-K001",
+          "skor": 18.2731,
+          "teks_asli": "Dewan Keamanan Perserikatan Bangsa-Bangsa menengahi pertikaian dengan Perjanjian Renville setelah Perjanjian Linggadjati gagal."
+        },
+        {
+          "id_kalimat": "D19-B0009-K001",
+          "skor": 17.4694,
+          "teks_asli": "Setelah disepakati pada 17 Januari 1948 perjanjian Renville memuat beberapa persetujuan, yaitu:"
+        },
+        {
+          "id_kalimat": "D21-B0002-K001",
+          "skor": 17.179,
+          "teks_asli": "Sebelum konferensi ini, ada tiga pertemuan tingkat tinggi lainnya antara Belanda dan Indonesia telah berlangsung; Perundingan Linggadjati tahun 1947, Perjanjian Renville tahun 1948, dan Perjanjian Roem-Roijen tahun 1949."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D20",
+      "pertanyaan": "Siapa kepala delegasi Republik Indonesia dalam perundingan Roem-Roijen?",
+      "jenis_acuan": "siapa",
+      "jawaban_acuan": "Mohamad Roem",
+      "blok_acuan": "D20-B0002",
+      "jenis_prediksi": "SIAPA",
+      "tipe_jawaban": "PER",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D20-B0002-K002",
+          "skor": 19.7264,
+          "teks_asli": "Kepala delegasi republik Indonesia, Mohamad Roem, menolak tuntutan ini, dan mengatakan bahwa kepemimpinan republik harus dikembalikan ke ibu kota terlebih dahulu."
+        },
+        {
+          "id_kalimat": "D09-B0054-K001",
+          "skor": 18.3324,
+          "teks_asli": "Ketua delegasi Republik Indonesia pada Perundingan Linggarjati"
+        },
+        {
+          "id_kalimat": "D21-B0004-K001",
+          "skor": 14.0892,
+          "teks_asli": "Menyusul Perjanjian Roem-Royen pada 6 Juli, yang secara efektif ditetapkan oleh resolusi Dewan Keamanan, Mohammad Roem mengatakan bahwa Republik Indonesia, yang para pemimpinnya masih diasingkan di Bangka, bersedia ikut serta dalam Konferensi Meja Bundar untuk mempercepat penyerahan kedaulatan."
+        },
+        {
+          "id_kalimat": "D16-B0010-K005",
+          "skor": 13.9057,
+          "teks_asli": "Permusuhan akhirnya berakhir pada tanggal 7 Mei dengan ditandatanganinya Perjanjian Roem-Roijen."
+        },
+        {
+          "id_kalimat": "D07-B0063-K004",
+          "skor": 13.9057,
+          "teks_asli": "Akibatnya, Belanda terpaksa menandatangani Perjanjian Roem-Roijen pada tanggal 7 Mei 1949."
+        }
+      ]
+    },
+    {
+      "id_dokumen": "D21",
+      "pertanyaan": "Berapa jumlah negara bagian Republik Indonesia Serikat?",
+      "jenis_acuan": "berapa",
+      "jawaban_acuan": "16 negara bagian",
+      "blok_acuan": "D21-B0018",
+      "jenis_prediksi": "BERAPA",
+      "tipe_jawaban": "NUM",
+      "sesuai_jenis": true,
+      "peringkat_blok_top5": 1,
+      "peringkat_bukti_top5": 1,
+      "kandidat_top5": [
+        {
+          "id_kalimat": "D21-B0018-K003",
+          "skor": 14.8026,
+          "teks_asli": "Indonesia Serikat dibentuk seperti republik federasi berdaulat yang terdiri dari 16 negara bagian dan merupakan persekutuan dengan Kerajaan Belanda."
+        },
+        {
+          "id_kalimat": "D07-B0064-K001",
+          "skor": 14.3442,
+          "teks_asli": "Sebagai bagian dari kompromi dengan Belanda, Indonesia mengadopsi konstitusi federal baru yang menjadikan negara ini negara federal yang disebut Republik Indonesia Serikat (RIS), terdiri dari Negara Kesatuan Republik Indonesia yang perbatasannya ditentukan oleh \"Garis Van Mook\", beserta enam negara bagian dan sembilan wilayah otonom yang dibuat oleh Belanda."
+        },
+        {
+          "id_kalimat": "D12-B0056-K001",
+          "skor": 13.9814,
+          "teks_asli": "Republik Indonesia dan Belanda akan bekerja sama dalam membentuk Negara Indonesia Serikat, dengan nama Republik Indonesia Serikat, yang salah satu bagiannya adalah Republik Indonesia,"
+        },
+        {
+          "id_kalimat": "D18-B0018-K001",
+          "skor": 13.682,
+          "teks_asli": "Pihak Belanda dan Indonesia sepakat membentuk negara Republik Indonesia Serikat (RIS)."
+        },
+        {
+          "id_kalimat": "D20-B0010-K003",
+          "skor": 12.5418,
+          "teks_asli": "Pada bulan Juli dan Agustus, para pemimpin republik mengadakan serangkaian pertemuan dengan Majelis Permusyawaratan Federal, yang mewakili negara-negara bagian yang didirikan di daerah-daerah yang dikuasai Belanda, untuk menyepakati bentuk Republik Indonesia Serikat (RIS) yang merdeka."
+        }
+      ]
+    }
+  ]
+}
