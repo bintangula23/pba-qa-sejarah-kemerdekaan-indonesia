@@ -1,0 +1,191 @@
+[
+  {
+    "id": "D01",
+    "pertanyaan": "Sumber daya alam apakah yang menjadi sasaran utama Jepang dalam pendudukannya di Hindia Belanda?",
+    "tipe_jawaban": "MISC",
+    "jawaban_acuan": "Minyak bumi",
+    "jawaban_chatbot": "Minyak bumi",
+    "id_sumber": "D01-B0009-K002",
+    "cocok_persis": true
+  },
+  {
+    "id": "D02",
+    "pertanyaan": "Dimana masa persidangan pertama BPUPK dibuka?",
+    "tipe_jawaban": "LOC",
+    "jawaban_acuan": "Gedung Chuo Sangi In di Jakarta",
+    "jawaban_chatbot": "Gedung Chuo Sangi In di Jakarta",
+    "id_sumber": "D02-B0010-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D03",
+    "pertanyaan": "Siapa yang ditunjuk PPKI sebagai wakil presiden pertama Indonesia?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Mohammad Hatta",
+    "jawaban_chatbot": "Mohammad Hatta",
+    "id_sumber": "D03-B0001-K002",
+    "cocok_persis": true
+  },
+  {
+    "id": "D04",
+    "pertanyaan": "Siapa yang memberikan julukan \"Piagam Jakarta\" kepada naskah usulan Mukadimah Undang-Undang Dasar Indonesia?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Mohammad Yamin",
+    "jawaban_chatbot": "Mohammad Yamin",
+    "id_sumber": "D04-B0017-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D05",
+    "pertanyaan": "Pada tanggal berapa Soekarno dan Mohammad Hatta dibawa ke Rengasdengklok?",
+    "tipe_jawaban": "DATE",
+    "jawaban_acuan": "16 Agustus 1945",
+    "jawaban_chatbot": "16 Agustus 1945",
+    "id_sumber": "D05-B0001-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D06",
+    "pertanyaan": "Apa nama kapal tempat Jepang secara resmi menyerah kepada Sekutu?",
+    "tipe_jawaban": "MISC",
+    "jawaban_acuan": "USS Missouri",
+    "jawaban_chatbot": "USS Missouri",
+    "id_sumber": "D06-B0007-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D07",
+    "pertanyaan": "Ke kota manakah Soekarno diasingkan bersama keluarganya pada tahun 1934?",
+    "tipe_jawaban": "LOC",
+    "jawaban_acuan": "Ende",
+    "jawaban_chatbot": "Ende",
+    "id_sumber": "D07-B0019-K002",
+    "cocok_persis": true
+  },
+  {
+    "id": "D08",
+    "pertanyaan": "Kapan Mohammad Hatta lahir?",
+    "tipe_jawaban": "DATE",
+    "jawaban_acuan": "12 Agustus 1902",
+    "jawaban_chatbot": "12 Agustus 1902",
+    "id_sumber": "D08-B0004-K003",
+    "cocok_persis": true
+  },
+  {
+    "id": "D09",
+    "pertanyaan": "Pada tahun berapa Sutan Sjahrir mendirikan Partai Sosialis Indonesia?",
+    "tipe_jawaban": "DATE",
+    "jawaban_acuan": "1948",
+    "jawaban_chatbot": "1948",
+    "id_sumber": "D09-B0002-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D10",
+    "pertanyaan": "Pada tanggal berapa Soebardjo dilantik sebagai Menteri Luar Negeri pada Kabinet Presidensial?",
+    "tipe_jawaban": "DATE",
+    "jawaban_acuan": "18 Agustus 1945",
+    "jawaban_chatbot": "18 Agustus 1945",
+    "id_sumber": "D10-B0011-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D11",
+    "pertanyaan": "Dimana Fatmawati dilahirkan?",
+    "tipe_jawaban": "LOC",
+    "jawaban_acuan": "Bengkulu",
+    "jawaban_chatbot": "Bengkulu",
+    "id_sumber": "D11-B0002-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D12",
+    "pertanyaan": "Siapa yang terpilih menjadi panglima Tentara Keamanan Rakyat?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Sudirman",
+    "jawaban_chatbot": "Sudirman",
+    "id_sumber": "D12-B0009-K006",
+    "cocok_persis": true
+  },
+  {
+    "id": "D13",
+    "pertanyaan": "Siapa komandan pasukan Britania yang tewas dalam baku tembak pada 30 Oktober 1945 di Surabaya?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Brigadir A. W. S. Mallaby",
+    "jawaban_chatbot": "Brigadir A. W. S. Mallaby",
+    "id_sumber": "D13-B0002-K002",
+    "cocok_persis": true
+  },
+  {
+    "id": "D14",
+    "pertanyaan": "Siapa anggota milisi BRI yang meledakkan gudang amunisi di Dayeuhkolot dengan dinamit?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Muhammad Toha",
+    "jawaban_chatbot": "Muhammad Toha",
+    "id_sumber": "D14-B0007-K006",
+    "cocok_persis": true
+  },
+  {
+    "id": "D15",
+    "pertanyaan": "Di daerah mana pasukan Belanda melakukan pendaratan dalam Operasi Produk Utara?",
+    "tipe_jawaban": "LOC",
+    "jawaban_acuan": "Pasir Poetih, Situbondo",
+    "jawaban_chatbot": "Pasir Poetih, Situbondo",
+    "id_sumber": "D15-B0005-K002",
+    "cocok_persis": true
+  },
+  {
+    "id": "D16",
+    "pertanyaan": "Operasi militer Belanda yang dikenal dengan sebutan Operasi Gagak dilancarkan pada bulan apa?",
+    "tipe_jawaban": "DATE",
+    "jawaban_acuan": "Desember 1948",
+    "jawaban_chatbot": "Desember 1948",
+    "id_sumber": "D16-B0001-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D17",
+    "pertanyaan": "Siapakah Letkol yang memimpin pasukan dari sektor barat hingga ke batas Malioboro dalam Serangan Umum 1 Maret 1949?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Letkol Soeharto",
+    "jawaban_chatbot": "Letkol Soeharto",
+    "id_sumber": "D17-B0004-K004",
+    "cocok_persis": true
+  },
+  {
+    "id": "D18",
+    "pertanyaan": "Siapa yang bertindak sebagai perantara pada tahap awal Perundingan Linggajati?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Lord Killearn",
+    "jawaban_chatbot": "Lord Killearn",
+    "id_sumber": "D18-B0013-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D19",
+    "pertanyaan": "Dimana kapal USS Renville berlabuh saat negosiasi Perjanjian Renville berlangsung?",
+    "tipe_jawaban": "LOC",
+    "jawaban_acuan": "Teluk Jakarta",
+    "jawaban_chatbot": "Teluk Jakarta",
+    "id_sumber": "D19-B0002-K001",
+    "cocok_persis": true
+  },
+  {
+    "id": "D20",
+    "pertanyaan": "Siapa kepala delegasi Republik Indonesia dalam perundingan Roem-Roijen?",
+    "tipe_jawaban": "PER",
+    "jawaban_acuan": "Mohamad Roem",
+    "jawaban_chatbot": "Mohamad Roem",
+    "id_sumber": "D20-B0002-K002",
+    "cocok_persis": true
+  },
+  {
+    "id": "D21",
+    "pertanyaan": "Berapa jumlah negara bagian Republik Indonesia Serikat?",
+    "tipe_jawaban": "NUM",
+    "jawaban_acuan": "16 negara bagian",
+    "jawaban_chatbot": "16 negara bagian",
+    "id_sumber": "D21-B0018-K003",
+    "cocok_persis": true
+  }
+]
