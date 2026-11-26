@@ -67,18 +67,6 @@ terlihat sebelum hasilnya disimpan.
 
 ## 4. Persiapan dan cara menjalankan
 
-Gunakan Python 3. Unduh atau clone branch yang memuat struktur folder di atas,
-kemudian buka **folder utama repository** di terminal atau VS Code.
-
-Pasang dependensi:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-Pada macOS/Linux, gunakan `python3` jika perintah Python 3 di perangkatmu adalah
-`python3`.
-
 ### Pemeriksaan korpus artikel
 
 Dari folder utama repository:
@@ -109,9 +97,6 @@ skrip ini tidak memakai assertion untuk menggagalkan proses saat jawaban berbeda
 3. Jalankan sel percakapan dan masukkan pertanyaan.
 4. Ketik `keluar`, `exit`, atau `quit` untuk berhenti.
 
-Walaupun nama filenya masih “Kerangka”, notebook tersebut sudah memanggil
-modul pertanyaan, retrieval, dan jawaban.
-
 Contoh pertanyaan:
 
 - Kapan Mohammad Hatta lahir?
@@ -131,16 +116,6 @@ Notebook menghitung Exact Match, MRR berdasarkan blok acuan, Hit@k berdasarkan
 blok acuan, dan kecocokan blok sumber jawaban. Hasil dapat disimpan dalam CSV
 dan JSON pada folder eksperimen yang dipilih.
 
-### Penggunaan Google Colab
-
-Notebook chatbot dan evaluasi memerlukan seluruh modul serta korpus dalam
-struktur folder repository. Membuka file `.ipynb` saja belum menyiapkan
-dependensinya.
-
-Siapkan salinan repository yang dapat diakses di runtime Colab, pindahkan
-direktori kerja ke folder utama repository, lalu jalankan sel secara berurutan.
-File dan runtime setiap pengguna Colab terpisah.
-
 ## 5. Tahapan preprocessing
 
 Penyiapan awal mencakup seleksi isi artikel, pembersihan bagian yang tidak
@@ -159,18 +134,6 @@ Notebook berikut memakai unggah/unduh file dari Google Colab:
 Unduh keluaran setiap tahap untuk diunggah pada tahap berikutnya. Jika hasil
 akan dipakai repository, tempatkan JSON kalimat pada `data/processed/` dan
 kamus alias pada `data/dictionary/`.
-
-Pada notebook tanggal versi saat ini, tambahkan penentuan nama file setelah
-`unggahan = files.upload()`, sebelum membaca JSON:
-
-```python
-nama_input = next(iter(unggahan))
-```
-
-Tanpa baris tersebut, runtime baru dapat mengalami `NameError` karena
-`nama_input` belum didefinisikan. Nama notebook memuat “Penanda_Soal”, tetapi
-alur kode yang tersedia melakukan normalisasi tanggal; jangan mengasumsikan
-field `bukti_soal` ditambahkan oleh notebook tersebut.
 
 ### Pemecahan kalimat
 
@@ -195,8 +158,6 @@ Normalisasi mengubah `teks_cari`, sementara `teks_asli` dan ID dipertahankan.
 - Rentang yang dikenali, jam, dan angka ribuan dipertahankan.
 - Tanggal yang tidak sah secara kalender dipertahankan.
 - Bulan-tahun tanpa hari, seperti `des 1941`, belum diperluas.
-
-Stemming dan stopword removal belum diterapkan pada korpus final.
 
 ## 6. Format data dan penggunaan antar modul
 
@@ -255,22 +216,11 @@ print(hasil)
 ```
 
 Keluaran jawaban berupa dictionary `jawaban` dan `id_kalimat`, atau `None`
-jika tidak ditemukan. Rincian modul tersedia pada
-[README Answer Processing](answer_processing/README_ANSWER_PROCESSING.md).
-
-Utilitas `passage_retrieval/context_expansion.py` tersedia terpisah.
-Keberadaan utilitas tersebut tidak berarti ia dipanggil dalam setiap alur.
-Modul jawaban juga memiliki pemeriksaan konteksnya sendiri.
-
+jika tidak ditemukan. 
 ## 7. Evaluasi dan batas interpretasi
 
 Dataset kelompok memuat **21 pertanyaan**. Pengujian ulang skrip evaluasi
 pada branch ini dengan query ternormalisasi dan BM25 `k=20` menghasilkan
-**21/21 jawaban cocok persis (100%)**.
-
-Soal tersebut juga digunakan selama pengembangan aturan. Hasil ini menjelaskan
-kinerja pada daftar yang diuji dan belum membuktikan kemampuan menjawab semua
-variasi pertanyaan atau pertanyaan baru.
 
 | Metrik pada notebook | Definisi |
 | --- | --- |
@@ -278,9 +228,6 @@ variasi pertanyaan atau pertanyaan baru.
 | MRR@k berbasis blok | Rata-rata kebalikan peringkat kalimat pertama dari blok acuan; bernilai nol jika tidak ditemukan dalam Top-k. |
 | Hit@k berbasis blok | Proporsi soal yang salah satu kandidatnya berasal dari blok acuan. |
 | Evidence Accuracy berbasis blok | Proporsi soal yang ID sumber jawaban akhirnya berasal dari blok acuan. |
-
-Kecocokan blok belum memastikan bahwa setiap kalimat dalam blok tersebut
-merupakan bukti jawaban yang tepat; bukti tetap perlu ditinjau.
 
 Pertanyaan, jawaban acuan, dan blok acuan digunakan oleh evaluator, bukan
 sebagai petunjuk pada fungsi pencarian dan ekstraksi jawaban.
@@ -295,26 +242,10 @@ sebagai petunjuk pada fungsi pencarian dan ekstraksi jawaban.
 | Kak Bintang | Ekstraksi jawaban serta validasi tokoh, entitas, dan hubungan peristiwa yang didukung. |
 | Kak Belva | Integrasi modul, eksperimen, evaluasi, dan dokumentasi hasil sistem. |
 
-## 9. Keterbatasan saat ini
 
-- Cakupan jawaban bergantung pada korpus dan pola ekstraksi yang tersedia.
-  Parafrase atau hubungan yang belum dikenali masih dapat gagal.
-- Pemecah kalimat bersifat heuristik. Singkatan di luar daftar, inisial di akhir
-  kalimat, dan kutipan kompleks masih memerlukan peninjauan.
-- Notebook integrasi sudah meneruskan `normalized_question` ke BM25. Namun,
-  normalisasi tanggal pada modul pertanyaan belum mencakup seluruh aturan
-  notebook preprocessing, termasuk format ISO dan validasi kalender.
-- POS tagging, dependency parsing, dan embedding belum digunakan oleh alur utama.
-- Pemeriksaan struktur, posisi karakter, dan keutuhan teks bukan verifikasi
-  kebenaran sejarah.
-- Record final tidak menyediakan `status_evaluasi`, `catatan_validasi`,
-  `bukti_soal`, atau `tanggal_akses`; kode lain tidak boleh mengasumsikannya ada.
+## 9. Sumber data dan lisensi
 
-## 10. Sumber data dan lisensi
-
-Sumber teks adalah para kontributor **Wikipedia bahasa Indonesia**. URL sumber
-tersedia pada record kalimat; pranala revisi permanen dan URL lisensi tersedia
-pada metadata korpus artikel.
+Sumber teks adalah para kontributor **Wikipedia bahasa Indonesia**.
 
 Teks telah diseleksi dan diproses untuk kebutuhan proyek. Rujukan lisensi
 teks sumber: [Creative Commons Attribution-ShareAlike 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
