@@ -131,9 +131,6 @@ tersedia dalam paket ini. Kode yang memanggil `status_evaluasi`,
 `catatan_validasi`, `bukti_soal`, atau `tanggal_akses` tidak boleh mengasumsikan
 field tersebut tersedia pada record final.
 
-Penyiapan korpus dan kode preprocessing dibantu AI. Kontribusi anggota dan
-bantuan yang dipakai perlu dicatat sesuai proses sebenarnya.
-
 Untuk memeriksa jumlah kata pada korpus artikel, jalankan dari folder `NLP`:
 
 ```bash
